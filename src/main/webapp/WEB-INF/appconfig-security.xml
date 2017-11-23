@@ -8,9 +8,9 @@
 		http://www.springframework.org/schema/security/spring-security.xsd">
 
     <http auto-config="true">
-        <intercept-url pattern="/" access="hasRole('ROLE_USER')"/>
-        <intercept-url pattern="/welcome" access="hasRole('ROLE_USER')"/>
-        <form-login login-page="/login" default-target-url="/welcome" authentication-failure-url="/login?error" username-parameter="username" password-parameter="password"/>
+        <intercept-url pattern="/" access="hasRole('ROLE_ADMIN')"/>
+        <intercept-url pattern="/adminDashboard" access="hasRole('ROLE_ADMIN')"/>
+        <form-login login-page="/login" authentication-success-handler-ref="CustomAuthenticationSuccessHandler" authentication-failure-url="/login?error" username-parameter="username" password-parameter="password"/>
         <logout logout-success-url="/login?logout" />
     </http>
 
@@ -21,6 +21,7 @@
     </authentication-manager>
 
     <beans:bean id="userDetailsServiceImpl" class="com.dssathe.cloudburst.service.UserDetailsServiceImpl"></beans:bean>
+    <beans:bean id="CustomAuthenticationSuccessHandler" class="com.dssathe.cloudburst.service.CustomAuthenticationSuccessHandler"></beans:bean>
 
     <beans:bean id="encoder"
           class="org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder">

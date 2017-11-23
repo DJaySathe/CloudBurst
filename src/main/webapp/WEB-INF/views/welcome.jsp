@@ -5,6 +5,8 @@
 <%@page import="java.sql.Statement"%>
 <%@page import="java.sql.Connection"%>
 <%@page import="com.dssathe.cloudburst.*"%>
+<%@page import="org.springframework.security.core.Authentication"%>
+<%@page import="org.springframework.security.core.context.SecurityContextHolder"%>
 
 <%
 String id = request.getParameter("userId");
@@ -67,21 +69,26 @@ int available = 4;
         </form>
 
         <h2>Welcome ${pageContext.request.userPrincipal.name} | <a onclick="document.forms['logoutForm'].submit()">Logout</a></h2>
+
+        <h4 class="text-center">My Reservations</a></h4>
         <table class="table table-striped table-bordered table-hover table-condensed" align="center" cellpadding="5" cellspacing="5" border="1">
         <tr>
 
         </tr>
         <tr >
         <td><b>id</b></td>
-        <td><b>name</b></td>
-        <td><b>Availability</b></td>
+        <td><b>Image</b></td>
+        <td><b>IP Address</b></td>
+        <td><b>Username</b></td>
+        <td><b>Password</b></td>
         </tr>
         <%
         try{
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         connection = DriverManager.getConnection(connectionUrl+dbName, userId, password);
         statement=connection.createStatement();
-        String sql ="SELECT * FROM vm";
-
+        String sql ="SELECT * FROM reservation WHERE Username='"+auth.getName().toString()+"';";
+        System.out.println(sql);
         resultSet = statement.executeQuery(sql);
 
         while(resultSet.next()){
@@ -89,74 +96,25 @@ int available = 4;
         <tr >
 
         <td><%=resultSet.getString("id") %></td>
-        <td><%=resultSet.getString("name") %></td>
-        <td><%=resultSet.getInt("Available")==1? "Available" : "Not Available"%></td>
-
+        <td><%=resultSet.getString("Image") %></td>
+        <td><%=resultSet.getString("IP Address") %></td>
+        <td><%=resultSet.getString("Username") %></td>
+        <td><%=resultSet.getString("Password") %></td>
         </tr>
 
         <%
         }
-        statement=connection.createStatement();
-        String sql1 ="SELECT COUNT(*) as c FROM vm where Available = 1";
-        resultSet1 = statement.executeQuery(sql1);
-        resultSet1.next();
-        available = resultSet1.getInt("c");
-        System.out.println(available);
-
         } catch (Exception e) {
         e.printStackTrace();
         }
         %>
         </table>
     </c:if>
-    <div id="canvas-holder" style="width:40%">
-             <canvas id="chart-area" />
-    </div>
+
 <!-- /container -->
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
 <script src="${contextPath}/resources/js/bootstrap.min.js"></script>
 <script src="../../resources/js/Chart.bundle.js"></script>
 <script src="../../resources/js/utils.js"></script>
-<script>
-    var available = '<%= available%>';
-    var config = {
-        type: 'doughnut',
-        data: {
-            datasets: [{
-                data: [
-                    4-available,
-                    available
-                ],
-                backgroundColor: [
-                    window.chartColors.red,
-                    window.chartColors.green
-                ],
-                label: 'Dataset 1'
-            }],
-            labels: [
-                "Reserved",
-                "Available"
-            ]
-        },
-        options: {
-            responsive: true,
-            legend: {
-                position: 'top',
-            },
-            title: {
-                display: true,
-                text: 'Availability'
-            },
-            animation: {
-                animateScale: true,
-                animateRotate: true
-            }
-        }
-    };
-    window.onload = function() {
-        var ctx = document.getElementById("chart-area").getContext("2d");
-        window.myDoughnut = new Chart(ctx, config);
-    };
-    </script>
 </body>
 </html>

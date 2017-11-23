@@ -44,3 +44,16 @@ CREATE TABLE `user_role` (
   CONSTRAINT `fk_user_role_roleid` FOREIGN KEY (`role_id`) REFERENCES `role` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `fk_user_role_userid` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+--
+-- Table structure for table `reservation`
+--
+
+CREATE TABLE reservation
+(Id INT NOT NULL AUTO_INCREMENT,
+UserId INT,
+Image VARCHAR(25),
+`IP Address` VARCHAR(25),
+Username VARCHAR(25),
+Password VARCHAR(25),
+PRIMARY KEY (Id));

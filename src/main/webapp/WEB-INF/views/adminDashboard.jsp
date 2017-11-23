@@ -1,62 +1,176 @@
 <%@ taglib prefix="spring" uri="http://www.springframework.org/tags" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@page import="java.sql.DriverManager"%>
+<%@page import="java.sql.ResultSet"%>
+<%@page import="java.sql.Statement"%>
+<%@page import="java.sql.Connection"%>
+<%@page import="com.dssathe.cloudburst.*"%>
+
+<%
+String id = request.getParameter("userId");
+String driverName = "com.mysql.jdbc.Driver";
+String connectionUrl = "jdbc:mysql://localhost:3306/";
+String dbName = "accounts";
+String userId = "root";
+String password = "root";
+
+try {
+Class.forName(driverName);
+} catch (ClassNotFoundException e) {
+e.printStackTrace();
+}
+
+Connection connection = null;
+Statement statement = null;
+ResultSet resultSet = null;
+ResultSet resultSet1 = null;
+int available = 4;
+%>
 
 <c:set var="contextPath" value="${pageContext.request.contextPath}"/>
 
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>Doughnut Chart</title>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>Welcome</title>
+
+    <link href="${contextPath}/resources/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+    <!--[if lt IE 9]>
+    <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+    <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
     <script src="../../resources/js/Chart.bundle.js"></script>
     <script src="../../resources/js/utils.js"></script>
     <style>
-    canvas {
-        -moz-user-select: none;
-        -webkit-user-select: none;
-        -ms-user-select: none;
-    }
+        canvas {
+            -moz-user-select: none;
+            -webkit-user-select: none;
+            -ms-user-select: none;
+        }
     </style>
+    <![endif]-->
 </head>
-
 <body>
+<div class="container">
+
+    <c:if test="${pageContext.request.userPrincipal.name != null}">
+        <form id="logoutForm" method="POST" action="${contextPath}/logout">
+            <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/>
+        </form>
+
+        <h2>Welcome ${pageContext.request.userPrincipal.name} | <a onclick="document.forms['logoutForm'].submit()">Logout</a></h2>
+
+         <h4 class="text-center">VM Details</a></h4>
+        <table class="table table-striped table-bordered table-hover table-condensed" align="center" cellpadding="5" cellspacing="5" border="1">
+        <tr>
+
+        </tr>
+        <tr >
+        <td><b>id</b></td>
+        <td><b>name</b></td>
+        <td><b>Availability</b></td>
+        </tr>
+        <%
+        try{
+        connection = DriverManager.getConnection(connectionUrl+dbName, userId, password);
+        statement=connection.createStatement();
+        String sql ="SELECT * FROM vm";
+
+        resultSet = statement.executeQuery(sql);
+
+        while(resultSet.next()){
+        %>
+        <tr >
+
+        <td><%=resultSet.getString("id") %></td>
+        <td><%=resultSet.getString("name") %></td>
+        <td><%=resultSet.getInt("Available")==1? "Available" : "Not Available"%></td>
+
+        </tr>
+
+        <%
+        }
+        statement=connection.createStatement();
+        String sql1 ="SELECT COUNT(*) as c FROM vm where Available = 1";
+        resultSet1 = statement.executeQuery(sql1);
+        resultSet1.next();
+        available = resultSet1.getInt("c");
+        System.out.println(available);
+
+        } catch (Exception e) {
+        e.printStackTrace();
+        }
+        %>
+        </table>
+    </c:if>
     <div id="canvas-holder" style="width:40%">
-        <canvas id="chart-area" />
+             <canvas id="chart-area" />
     </div>
-    <button id="randomizeData">Randomize Data</button>
-    <button id="addDataset">Add Dataset</button>
-    <button id="removeDataset">Remove Dataset</button>
-    <button id="addData">Add Data</button>
-    <button id="removeData">Remove Data</button>
-    <script>
-    var randomScalingFactor = function() {
-        return Math.round(Math.random() * 100);
-    };
+    <h4 class="text-center">User Details</a></h4>
+    <table class="table table-striped table-bordered table-hover table-condensed" align="center" cellpadding="5" cellspacing="5" border="1">
+            <tr>
+
+            </tr>
+            <tr >
+            <td><b>id</b></td>
+            <td><b>username</b></td>
+            </tr>
+            <%
+            try{
+            connection = DriverManager.getConnection(connectionUrl+dbName, userId, password);
+            statement=connection.createStatement();
+            String sql ="SELECT * FROM user";
+
+            resultSet = statement.executeQuery(sql);
+
+            while(resultSet.next()){
+            %>
+            <tr >
+
+            <td><%=resultSet.getString("id") %></td>
+            <td><%=resultSet.getString("username") %></td>
+
+            </tr>
+            <%
+            }
+            } catch (Exception e) {
+            e.printStackTrace();
+            }
+            %>
+            </table>
+    <h4 class="text-center"><a href="${contextPath}/registration">Add new User</a></h4>
+<!-- /container -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
+<script src="${contextPath}/resources/js/bootstrap.min.js"></script>
+<script src="../../resources/js/Chart.bundle.js"></script>
+<script src="../../resources/js/utils.js"></script>
+<script>
+    var available = '<%= available%>';
     var config = {
         type: 'doughnut',
         data: {
             datasets: [{
                 data: [
-                    randomScalingFactor(),
-                    randomScalingFactor(),
-                    randomScalingFactor(),
-                    randomScalingFactor(),
-                    randomScalingFactor(),
+                    4-available,
+                    available
                 ],
                 backgroundColor: [
                     window.chartColors.red,
-                    window.chartColors.orange,
-                    window.chartColors.yellow,
-                    window.chartColors.green,
-                    window.chartColors.blue,
+                    window.chartColors.green
                 ],
                 label: 'Dataset 1'
             }],
             labels: [
-                "Red",
-                "Orange",
-                "Yellow",
-                "Green",
-                "Blue"
+                "Reserved",
+                "Available"
             ]
         },
         options: {
@@ -66,7 +180,7 @@
             },
             title: {
                 display: true,
-                text: 'Chart.js Doughnut Chart'
+                text: 'Availability'
             },
             animation: {
                 animateScale: true,
@@ -78,55 +192,6 @@
         var ctx = document.getElementById("chart-area").getContext("2d");
         window.myDoughnut = new Chart(ctx, config);
     };
-    document.getElementById('randomizeData').addEventListener('click', function() {
-        config.data.datasets.forEach(function(dataset) {
-            dataset.data = dataset.data.map(function() {
-                return randomScalingFactor();
-            });
-        });
-        window.myDoughnut.update();
-    });
-    var colorNames = Object.keys(window.chartColors);
-    document.getElementById('addDataset').addEventListener('click', function() {
-        var newDataset = {
-            backgroundColor: [],
-            data: [],
-            label: 'New dataset ' + config.data.datasets.length,
-        };
-        for (var index = 0; index < config.data.labels.length; ++index) {
-            newDataset.data.push(randomScalingFactor());
-            var colorName = colorNames[index % colorNames.length];;
-            var newColor = window.chartColors[colorName];
-            newDataset.backgroundColor.push(newColor);
-        }
-        config.data.datasets.push(newDataset);
-        window.myDoughnut.update();
-    });
-    document.getElementById('addData').addEventListener('click', function() {
-        if (config.data.datasets.length > 0) {
-            config.data.labels.push('data #' + config.data.labels.length);
-            var colorName = colorNames[config.data.datasets[0].data.length % colorNames.length];;
-            var newColor = window.chartColors[colorName];
-            config.data.datasets.forEach(function(dataset) {
-                dataset.data.push(randomScalingFactor());
-                dataset.backgroundColor.push(newColor);
-            });
-            window.myDoughnut.update();
-        }
-    });
-    document.getElementById('removeDataset').addEventListener('click', function() {
-        config.data.datasets.splice(0, 1);
-        window.myDoughnut.update();
-    });
-    document.getElementById('removeData').addEventListener('click', function() {
-        config.data.labels.splice(-1, 1); // remove the label first
-        config.data.datasets.forEach(function(dataset) {
-            dataset.data.pop();
-            dataset.backgroundColor.pop();
-        });
-        window.myDoughnut.update();
-    });
     </script>
-</body>
 </body>
 </html>

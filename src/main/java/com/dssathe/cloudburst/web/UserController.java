@@ -40,9 +40,9 @@ public class UserController {
 
         userService.save(userForm);
 
-        securityService.autologin(userForm.getUsername(), userForm.getPasswordConfirm());
+        //securityService.autologin(userForm.getUsername(), userForm.getPasswordConfirm());
 
-        return "redirect:/welcome";
+        return "redirect:/adminDashboard";
     }
 
     @RequestMapping(value = "/login", method = RequestMethod.GET)
@@ -54,6 +54,11 @@ public class UserController {
             model.addAttribute("message", "You have been logged out successfully.");
 
         return "login";
+    }
+
+    @RequestMapping(value = {"/adminDashboard"}, method = RequestMethod.GET)
+    public String adminDashBoard(Model model) {
+        return "adminDashboard";
     }
 
     @RequestMapping(value = {"/", "/welcome"}, method = RequestMethod.GET)

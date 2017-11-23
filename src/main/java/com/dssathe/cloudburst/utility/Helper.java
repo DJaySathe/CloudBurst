@@ -21,13 +21,14 @@ public class Helper {
         try{
             connection = DriverManager.getConnection(connectionUrl+dbName, userId, password);
             statement=connection.createStatement();
-            String sql ="SELECT count(*) as c FROM vm where Available = 0";
+            String sql ="SELECT count(*) as c FROM vm where Available = 1";
 
             resultSet = statement.executeQuery(sql);
             return resultSet.getInt("c");
 
         } catch (Exception e) {
             e.printStackTrace();
+            System.out.println(e);
         }
         return 4;
     }
