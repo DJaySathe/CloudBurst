@@ -1,41 +1,49 @@
 CREATE DATABASE  IF NOT EXISTS `accounts`;
 USE `accounts`;
+
+-- 
+-- Dropping existing tables
+--
+
+DROP TABLE IF EXISTS `user_role`;
+DROP TABLE IF EXISTS `role`;
+DROP TABLE IF EXISTS `user`;
+DROP TABLE IF EXISTS `reservation`;
+
 --
 -- Table structure for table `role`
 --
 
-DROP TABLE IF EXISTS `role`;
 CREATE TABLE `role` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `name` varchar(45) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 --
 -- Dumping data for table `role`
 --
 
 LOCK TABLES `role` WRITE;
-INSERT INTO `role` VALUES (1,'ROLE_USER');
+INSERT INTO `role` VALUES (1,'ROLE_ADMIN');
+INSERT INTO `role` VALUES (2,'ROLE_USER');
 UNLOCK TABLES;
 
 --
 -- Table structure for table `user`
 --
 
-DROP TABLE IF EXISTS `user`;
 CREATE TABLE `user` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `username` varchar(255) DEFAULT NULL,
   `password` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 --
 -- Table structure for table `user_role`
 --
 
-DROP TABLE IF EXISTS `user_role`;
 CREATE TABLE `user_role` (
   `user_id` int(11) NOT NULL,
   `role_id` int(11) NOT NULL,
@@ -46,14 +54,28 @@ CREATE TABLE `user_role` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 --
+-- Dumping data for table `user` and `user_role`
+--
+
+LOCK TABLES `user` WRITE;
+INSERT INTO `user` VALUES (1,'admin','$2a$11$hU1vL/Bjc9YGoXGJGPrZBuakEGKvRaDXPitzBUHDujJ0zJTNdAXv.');
+UNLOCK TABLES;
+
+LOCK TABLES `user_role` WRITE;
+INSERT INTO `user_role` VALUES (1,1);
+UNLOCK TABLES;
+
+--
 -- Table structure for table `reservation`
 --
 
-CREATE TABLE reservation
-(Id INT NOT NULL AUTO_INCREMENT,
-UserId INT,
-Image VARCHAR(25),
-`IP Address` VARCHAR(25),
-Username VARCHAR(25),
-Password VARCHAR(25),
-PRIMARY KEY (Id));
+CREATE TABLE `reservation` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `user_id` int(11),
+  `image_id` varchar(25),
+  `public_ip` varchar(25),
+  `username` varchar(25),
+  `password` varchar(25),
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
