@@ -30,10 +30,10 @@ public class AWS {
         key = "lab_machine_key";
     }
 
-    public Boolean createInstance() {
+    public String createInstance(String user, String pass) {
         instanceId = launch();
         if(instanceId == null) {
-            return false;
+            return null;
         }
         System.out.println("Instance Launched");
 
@@ -43,13 +43,15 @@ public class AWS {
         System.out.println("Waiting for status checks");
         if(!checkStatus()) {
             terminateInstance();
-            return false;
+            return null;
         };
 
-        return true;
+        createUser(user, pass);
+
+        return publicIP;
     }
 
-    public void createUser(String user, String pass) {
+    private void createUser(String user, String pass) {
         username = user;
         password = pass;
 

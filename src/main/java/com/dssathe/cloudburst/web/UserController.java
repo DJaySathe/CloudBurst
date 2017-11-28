@@ -1,5 +1,7 @@
 package com.dssathe.cloudburst.web;
 
+import com.dssathe.cloudburst.aws.AWS;
+import com.dssathe.cloudburst.model.Reservation;
 import com.dssathe.cloudburst.service.UserService;
 import com.dssathe.cloudburst.validator.UserValidator;
 import com.dssathe.cloudburst.model.User;
@@ -64,5 +66,33 @@ public class UserController {
     @RequestMapping(value = {"/", "/welcome"}, method = RequestMethod.GET)
     public String welcome(Model model) {
         return "welcome";
+    }
+
+    @RequestMapping(value = "/reservation", method = RequestMethod.GET)
+    public String reservation(Model model) {
+        return "reservation";
+    }
+
+    @RequestMapping(value = "/reservation", method = RequestMethod.POST)
+    public String reservation(@ModelAttribute("reserveForm") Reservation reservationForm, Model model) {
+        System.out.println(reservationForm.getUsername());
+        System.out.println(reservationForm.getAmi());
+        System.out.println(reservationForm.getHours());
+
+        reservationForm.setPassword("YxAnsK");
+
+        AWS aws = new AWS();
+        String ip = aws.createInstance(reservationForm.getUsername(), reservationForm.getPassword());
+        if(ip == null) {
+            System.out.println("Unable to create Instance");
+        }
+        else {
+            reservationForm.setPublicIP(ip);
+            reservationForm.setImage(aws.getImageId());
+
+            reservationForm.save();
+        }
+
+        return "redirect:/welcome";
     }
 }

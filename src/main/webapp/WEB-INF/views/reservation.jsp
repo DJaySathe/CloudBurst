@@ -69,52 +69,25 @@ int available = 4;
         </form>
 
         <h2>Welcome ${pageContext.request.userPrincipal.name} | <a onclick="document.forms['logoutForm'].submit()">Logout</a></h2>
+        <h3>New Reservation</h3>
 
-        <form action="${contextPath}/reservation" class="form-reserve">
-            <div class="form-group1">
-                <button class="btn btn-lg btn-primary btn-block" type="new_reservation">New Reservation</button>
-            </div>
-        </form>
+        <form method="POST" action="${contextPath}/reservation" class="form-reservation">
+                <div class="form-group">
+                    <select name="username">
+                        <option value="${pageContext.request.userPrincipal.name}">${pageContext.request.userPrincipal.name}</option>
+                    </select>
+                    <select name="ami">
+                        <option value="centos">centos</option>
+                    </select>
+                    <select name="hours">
+                        <option value="1">1 Hour</option>
+                        <option value="2">2 Hours</option>
+                        <option value="3">3 Hours</option>
+                    </select>
 
-        <h4 class="text-center">My Reservations</a></h4>
-        <table class="table table-striped table-bordered table-hover table-condensed" align="center" cellpadding="5" cellspacing="5" border="1">
-        <tr>
-
-        </tr>
-        <tr >
-        <td><b>id</b></td>
-        <td><b>Image</b></td>
-        <td><b>IP Address</b></td>
-        <td><b>Username</b></td>
-        <td><b>Password</b></td>
-        </tr>
-        <%
-        try{
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        connection = DriverManager.getConnection(connectionUrl+dbName, userId, password);
-        statement=connection.createStatement();
-        String sql ="SELECT * FROM reservation WHERE Username='"+auth.getName().toString()+"';";
-        System.out.println(sql);
-        resultSet = statement.executeQuery(sql);
-
-        while(resultSet.next()){
-        %>
-        <tr >
-
-        <td><%=resultSet.getString("id") %></td>
-        <td><%=resultSet.getString("Image") %></td>
-        <td><%=resultSet.getString("IP Address") %></td>
-        <td><%=resultSet.getString("Username") %></td>
-        <td><%=resultSet.getString("Password") %></td>
-        </tr>
-
-        <%
-        }
-        } catch (Exception e) {
-        e.printStackTrace();
-        }
-        %>
-        </table>
+                    <button class="btn btn-lg btn-primary btn-block" type="reserve">Reserve</button>
+                </div>
+         </form>
     </c:if>
 
 <!-- /container -->
