@@ -92,7 +92,7 @@ public class UserController {
 
             reservationForm.save();
         }
-
+        System.out.println("Coming out from aws thing");
         return "redirect:/welcome";
     }
 }

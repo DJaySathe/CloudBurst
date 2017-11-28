@@ -65,13 +65,14 @@ int available = 4;
 
     <c:if test="${pageContext.request.userPrincipal.name != null}">
         <form id="logoutForm" method="POST" action="${contextPath}/logout">
-            <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/>
+              <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/>
         </form>
 
         <h2>Welcome ${pageContext.request.userPrincipal.name} | <a onclick="document.forms['logoutForm'].submit()">Logout</a></h2>
         <h3>New Reservation</h3>
 
         <form method="POST" action="${contextPath}/reservation" class="form-reservation">
+            <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/>
                 <div class="form-group">
                     <select name="username">
                         <option value="${pageContext.request.userPrincipal.name}">${pageContext.request.userPrincipal.name}</option>

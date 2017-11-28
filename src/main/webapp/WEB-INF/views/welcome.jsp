@@ -71,6 +71,7 @@ int available = 4;
         <h2>Welcome ${pageContext.request.userPrincipal.name} | <a onclick="document.forms['logoutForm'].submit()">Logout</a></h2>
 
         <form action="${contextPath}/reservation" class="form-reserve">
+            <input type="hidden"  name="${_csrf.parameterName}"   value="${_csrf.token}"/>
             <div class="form-group1">
                 <button class="btn btn-lg btn-primary btn-block" type="new_reservation">New Reservation</button>
             </div>
