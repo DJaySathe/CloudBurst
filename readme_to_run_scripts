@@ -1,0 +1,14 @@
+# To run the scripts, I need three inputs for script.sh:
+#Avaliable VM IP, Username and flag(1 if its reservation and 0 if its delete)
+example: 
+user want reserve an VM, let available VM be 192.168.122.1
+
+----->>>>>>Need to execute : bash script.sh 192.168.122.1 <userid> 1
+Output : UserID: yas has been created with the following password: <pwd>
+
+if its delete:
+
+---->>>>>bash script.sh <assigned vm Ip> <userid> 0
+
+
+
