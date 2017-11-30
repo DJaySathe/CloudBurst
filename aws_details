@@ -1,0 +1,80 @@
+Install aws-cli
+
+$ curl "https://bootstrap.pypa.io/get-pip.py" -o "get-pip.py"
+$ python get-pip.py --user
+$ pip install awscli --user
+
+
+
+Configure
+
+$ aws configure
+AWS Access Key ID [None]: AKIAJ5K2PEBEUAP262OA
+AWS Secret Access Key [None]: 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
+Default region name [None]: us-east-1
+Default output format [None]: json
+
+
+Test
+
+$ aws ec2 describe-regions --output table
+
+
+
+Create Security Group & Key Pair
+
+$ aws ec2 create-security-group --group-name devenv-sg --description "custom security group for ex2"
+{
+    "GroupId": "sg-5a9e4c2f"
+}
+
+$ aws ec2 authorize-security-group-ingress --group-name devenv-sg --protocol tcp --port 22 --cidr 0.0.0.0/0
+
+
+$ aws ec2 create-key-pair --key-name my_aws_key --query 'KeyMaterial' --output text > my_aws_key.pem
+$ chmod 400 my_aws_key.pem
+
+
+
+
+Launching Instance
+
+$ aws ec2 run-instances --image-id ami-da05a4a0 --security-group-ids sg-5a9e4c2f --count 1 --instance-type t2.micro --key-name my_aws_key --query 'Instances[0].InstanceId' 
+"i-0d3480f5ddef38bfb"
+
+$ aws ec2 describe-instances --instance-ids "i-0d3480f5ddef38bfb" --query 'Reservations[0].Instances[0].PublicIpAddress'
+"54.172.173.139"
+
+$ ssh -i my_aws_key.pem ubuntu@54.172.173.139
+
+
+
+Create new User and give permissions
+
+$ sudo useradd -s /bin/bash -m -d /home/user1 -g root user1
+
+$ sudo passwd user1
+Enter new UNIX password: user1Password
+Retype new UNIX password: user1Password
+passwd: password updated successfully
+
+$ echo 'user1 ALL=(ALL:ALL) ALL' | sudo EDITOR='tee -a' visudo
+
+$ sudo cp -p /etc/ssh/sshd_config /etc/ssh/sshd_config.old
+$ sudo sed -i '/PasswordAuthentication no/c\PasswordAuthentication yes' /etc/ssh/sshd_config
+
+$ sudo /etc/init.d/ssh restart
+
+
+
+
+User Connecting:
+
+$ ssh user1@54.172.173.139
+
+
+
+
+
+
+
