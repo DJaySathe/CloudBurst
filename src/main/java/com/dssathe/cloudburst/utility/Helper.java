@@ -19,7 +19,8 @@ public class Helper {
     static Statement statement = null;
     static ResultSet resultSet = null;
 
-    public static void insertReservation(Reservation reservation) {
+    public static int insertReservation(Reservation reservation) {
+        int id = -1;
         try{
             connection = DriverManager.getConnection(connectionUrl+dbName, userId, password);
             statement=connection.createStatement();
@@ -36,8 +37,12 @@ public class Helper {
                     + reservation.getEnd_time() + "\");";
 
             System.out.println(sql);
+            statement.executeUpdate(sql, Statement.RETURN_GENERATED_KEYS);
 
-            statement.executeUpdate(sql);
+            ResultSet rs = statement.getGeneratedKeys();
+
+            if (rs.next())
+              id = rs.getInt(1);
 
             connection.close();
 
@@ -45,6 +50,7 @@ public class Helper {
             e.printStackTrace();
             System.out.println(e);
         }
+        return id;
     }
 
     public static int getAvailable(){
@@ -66,11 +72,11 @@ public class Helper {
         return 4;
     }
 
-    public static int markUnavailable(String vm_id){
+    public static int markAvailability(String vm_id, int val){
         try{
             connection = DriverManager.getConnection(connectionUrl+dbName, userId, password);
             statement=connection.createStatement();
-            String sql = "update vm_info set availability = 0 where vm_id = '" + vm_id + "'";
+            String sql = "update vm_info set availability = " + val + " where vm_id = '" + vm_id + "'";
 
             int update_count = statement.executeUpdate(sql);
             return update_count;
