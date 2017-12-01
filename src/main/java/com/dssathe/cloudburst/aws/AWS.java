@@ -27,7 +27,7 @@ public class AWS {
 
         imageId = "ami-da05a4a0";
         securityGrp = "sg-5a9e4c2f";
-        key = "lab_machine_key";
+        key = "pod7a_4";
     }
 
     public String createInstance(String user, String pass) {
@@ -119,10 +119,13 @@ public class AWS {
                     " --count 1 --instance-type t2.micro --key-name " + key +
                     " --query Instances[0].InstanceId";
 
+            System.out.println(command);
+
             p = Runtime.getRuntime().exec(command);
             BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()));
 
             instance = br.readLine();
+            System.out.println("Instance ID: " + instance);
 
             p.waitFor();
             p.destroy();
@@ -150,7 +153,7 @@ public class AWS {
             TimeUnit.SECONDS.sleep(10);
 
         } catch (Exception e) {
-            System.out.println("Unable to launch: " + e.getStackTrace());
+            System.out.println("Unable to launch: " + e.getMessage() + "\n" + e.getStackTrace());
         }
 
         return instance;

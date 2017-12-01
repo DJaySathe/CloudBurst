@@ -1,0 +1,87 @@
+Install aws-cli
+
+$ curl "https://bootstrap.pypa.io/get-pip.py" -o "get-pip.py"
+$ python get-pip.py --user
+$ pip install awscli --user
+
+
+
+Configure
+
+$ aws configure
+AWS Access Key ID [None]: <access_key_id_iam_user>
+AWS Secret Access Key [None]: <access_key_iam_user>
+Default region name [None]: us-east-1
+Default output format [None]: text
+
+
+Test
+
+$ aws ec2 describe-regions --output table
+just see if there is output showing all regions
+
+
+Create Security Group & Key Pair
+
+$ aws ec2 create-security-group --group-name <g_name> --description "custom security group for ex2"
+{
+    "GroupId": "<sg_id>"
+}
+
+$ aws ec2 authorize-security-group-ingress --group-name <g_name> --protocol tcp --port 22 --cidr 0.0.0.0/0
+
+
+$ aws ec2 create-key-pair --key-name <key_name> --query 'KeyMaterial' --output text > <key_name>.pem
+$ chmod 400 <key_name>.pem
+
+
+
+
+
+BELOW COMMANDS RUN BY JAVA CODE
+
+Launching Instance
+
+$ aws ec2 run-instances --image-id ami-da05a4a0 --security-group-ids <sg_id> --count 1 --instance-type t2.micro --key-name my_aws_key --query 'Instances[0].InstanceId' 
+Returns <instance_id>
+
+$ aws ec2 describe-instances --instance-ids <instance_id> --query Reservations[0].Instances[0].PublicIpAddress
+Returns <public_ip>
+
+$ ssh -i <keyname>.pem <user>@<public_up>
+
+
+Waiting for Availability:
+$ aws ec2 describe-instance-status --instance-id <instanceId> --query InstanceStatuses[0].SystemStatus.Details[0].Status
+
+
+Create new User and give permissions
+
+$ sudo useradd -s /bin/bash -m -d /home/user1 -g root user1
+
+$ sudo passwd user1
+Enter new UNIX password: user1Password
+Retype new UNIX password: user1Password
+passwd: password updated successfully
+
+// BELOW COMMAND NOT RUN as we don't want sudo access
+$ echo 'user1 ALL=(ALL:ALL) ALL' | sudo EDITOR='tee -a' visudo
+
+$ sudo cp -p /etc/ssh/sshd_config /etc/ssh/sshd_config.old
+$ sudo sed -i '/PasswordAuthentication no/c\PasswordAuthentication yes' /etc/ssh/sshd_config
+
+$ sudo /etc/init.d/ssh restart
+
+
+
+
+User Connecting:
+
+$ ssh user1@<public_ip>
+
+
+
+
+
+
+
