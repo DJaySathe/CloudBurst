@@ -1,6 +1,7 @@
 package com.dssathe.cloudburst.web;
 
 import com.dssathe.cloudburst.aws.AWS;
+import com.dssathe.cloudburst.model.DeleteReservation;
 import com.dssathe.cloudburst.model.Reservation;
 import com.dssathe.cloudburst.service.UserService;
 import com.dssathe.cloudburst.validator.UserValidator;
@@ -94,5 +95,11 @@ public class UserController {
         }
         System.out.println("Coming out from aws thing");
         return "redirect:/welcome";
+    }
+    
+    @RequestMapping(value = "/deleteReservation", method = RequestMethod.POST)
+    public String deleteReservation(@ModelAttribute("deleteReservationForm") DeleteReservation deleteReservationForm, Model model) {
+    	System.out.println(deleteReservationForm.getId());
+    	return "redirect:/welcome";
     }
 }

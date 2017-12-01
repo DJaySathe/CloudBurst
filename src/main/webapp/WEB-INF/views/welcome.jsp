@@ -9,7 +9,7 @@
 <%@page import="org.springframework.security.core.context.SecurityContextHolder"%>
 
 <%
-String id = request.getParameter("userId");
+String id = request.getParameter("user_id");
 String driverName = "com.mysql.jdbc.Driver";
 String connectionUrl = "jdbc:mysql://localhost:3306/";
 String dbName = "accounts";
@@ -83,11 +83,13 @@ int available = 4;
 
         </tr>
         <tr >
-        <td><b>id</b></td>
         <td><b>Image</b></td>
         <td><b>IP Address</b></td>
         <td><b>Username</b></td>
         <td><b>Password</b></td>
+        <td><b>Start Time</b></td>
+        <td><b>End Time</b></td>
+        <td><b>Actions</b></td>
         </tr>
         <%
         try{
@@ -100,15 +102,23 @@ int available = 4;
 
         while(resultSet.next()){
         %>
-        <tr >
-
-        <td><%=resultSet.getString("id") %></td>
-        <td><%=resultSet.getString("Image") %></td>
-        <td><%=resultSet.getString("IP Address") %></td>
-        <td><%=resultSet.getString("Username") %></td>
-        <td><%=resultSet.getString("Password") %></td>
+        <tr>
+	        <td><%=resultSet.getString("image_name") %></td>
+	        <td><%=resultSet.getString("public_ip") %></td>
+	        <td><%=resultSet.getString("username") %></td>
+	        <td><%=resultSet.getString("password") %></td>
+	        <td><%=resultSet.getString("start_time") %></td>
+	        <td><%=resultSet.getString("end_time") %></td>
+	        <td>
+	        
+            <form id="deleteReservationForm" method="POST" action="${contextPath}/deleteReservation">
+            	<input type="hidden"  name="${_csrf.parameterName}"   value="${_csrf.token}"/>
+                <input type="hidden" name="id" value="${resultSet.getString('id')}" />
+                <input type="submit" value="Delete Reservation" name="remove">
+            </form>
+        	</td>
         </tr>
-
+		
         <%
         }
         } catch (Exception e) {
