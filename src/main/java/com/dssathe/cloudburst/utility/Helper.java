@@ -27,7 +27,7 @@ public class Helper {
                     "(user_id, image_name, vm_id, source, public_ip, username, password, end_time)"
                     + " values ("
                     + reservation.getUser_id() + ", \""
-                    + reservation.getImage_name() + ", \""
+                    + reservation.getImage_name() +  "\", \""
                     + reservation.getVm_id() + "\", "
                     + reservation.getSource() + ", \""
                     + reservation.getPublic_ip() + "\", \""
@@ -54,13 +54,32 @@ public class Helper {
             String sql ="SELECT count(*) as c FROM vm_info where availability = 1";
 
             resultSet = statement.executeQuery(sql);
-            return resultSet.getInt("c");
+            if(resultSet.next())
+              return resultSet.getInt("c");
+            else
+              return 0;
 
         } catch (Exception e) {
             e.printStackTrace();
             System.out.println(e);
         }
         return 4;
+    }
+
+    public static int markUnavailable(String vm_id){
+        try{
+            connection = DriverManager.getConnection(connectionUrl+dbName, userId, password);
+            statement=connection.createStatement();
+            String sql = "update vm_info set availability = 0 where vm_id = '" + vm_id + "'";
+
+            int update_count = statement.executeUpdate(sql);
+            return update_count;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.out.println(e);
+        }
+        return 0;
     }
 
     public static String getAvailablePrivateCloudVM() {

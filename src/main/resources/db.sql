@@ -103,7 +103,7 @@ CREATE TABLE `reservation` (
   `public_ip` varchar(25),
   `username` varchar(25),
   `password` varchar(25),
-  `start_time` datetime DEFAULT current_timestamp NOT NULL,
+  `start_time` datetime,
   `end_time` datetime,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;

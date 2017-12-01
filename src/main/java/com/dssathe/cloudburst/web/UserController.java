@@ -5,7 +5,11 @@ import com.dssathe.cloudburst.model.Reservation;
 import com.dssathe.cloudburst.service.UserService;
 import com.dssathe.cloudburst.validator.UserValidator;
 import com.dssathe.cloudburst.model.User;
+import com.dssathe.cloudburst.repository.ReservationRepository;
 import com.dssathe.cloudburst.service.SecurityService;
+
+import javax.servlet.http.HttpServletRequest;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -13,9 +17,11 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+
 import com.dssathe.cloudburst.utility.Helper;
-import java.io.BufferedReader;
-import java.io.InputStreamReader;;
+import java.io.*;
+
 
 @Controller
 public class UserController {
@@ -27,6 +33,9 @@ public class UserController {
 
     @Autowired
     private UserValidator userValidator;
+
+    @Autowired
+    private ReservationRepository reservationRepository;
 
     @RequestMapping(value = "/registration", method = RequestMethod.GET)
     public String registration(Model model) {
@@ -92,18 +101,25 @@ public class UserController {
             String username = "dummy";
 
             try {
-              String commands[] = new String[]{"~/script2.sh" ,ip, username, "1"};
-              //String command = "/bin/sh ../../../../../../../script2.sh " + ip + " " + username + " 1";
+              // get the password
+              System.out.println("Running script:" + System.getProperty("user.dir") + "/script2.sh");
 
-              //System.out.println(command);
+              Process p = new ProcessBuilder("/bin/sh", System.getProperty("user.dir") + "/script2.sh", ip, username, "1").start();
+              p.waitFor();
 
-              Process p = Runtime.getRuntime().exec(commands);
               BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()));
               String pw = br.readLine();
-
               System.out.println("Private VM id = " + vm_id + " random password = " + pw);
 
-              //p.destroy();
+              // mark the vm as unavailable
+              int update_count = Helper.markUnavailable(vm_id);
+
+              // if password is null or vm wasn't marked unavailable, don't create reservation
+              if(pw == null || pw == "" || update_count == 0) {
+
+
+
+              }
 
               reservationForm.setVm_id(vm_id);
               reservationForm.setImage_name("CentOS 7");
@@ -116,9 +132,6 @@ public class UserController {
               System.out.println(reservationForm.toString());
 
               Helper.insertReservation(reservationForm);
-
-              // mark the vm as unavailable
-
 
             } catch (Exception e) {
                 System.out.println("Unable to invoke private cloud reservation: " + e.getMessage() + "\n" + e.getStackTrace());
@@ -139,5 +152,20 @@ public class UserController {
         }
 
         return "redirect:/welcome";
+    }
+
+    @RequestMapping(value = "/deleteReservation", method = RequestMethod.POST)
+    public String deleteReservation(@RequestParam(value="deleteReservation", required=true) Long id) {
+    	Reservation reservation = reservationRepository.findOne(id); // fetch reservation to check private/public
+    	if(reservation.getSource() == 1) { // Call Script to delete VM on private cloud
+
+    	}
+
+    	else { // Call Script to delete VM on public cloud
+
+    	}
+
+    	reservationRepository.delete(id); // delete reservation from database
+    	return "redirect:/welcome";
     }
 }

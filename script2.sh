@@ -12,9 +12,8 @@
 hostip=$1
 username=$2
 flag=$3
-if [ "$3" = 1 ]
- then randompw=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 8 | head -n 1)
- echo $randompw
+if [ "$3" = "1" ]
+ then echo "random password"
 else
- ssh root@$1 "bash -s" < delete_script.sh $2
+ ssh echo 1
 fi
