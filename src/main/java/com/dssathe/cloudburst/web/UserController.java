@@ -1,12 +1,14 @@
 package com.dssathe.cloudburst.web;
 
 import com.dssathe.cloudburst.aws.AWS;
-import com.dssathe.cloudburst.model.DeleteReservation;
 import com.dssathe.cloudburst.model.Reservation;
 import com.dssathe.cloudburst.service.UserService;
 import com.dssathe.cloudburst.validator.UserValidator;
 import com.dssathe.cloudburst.model.User;
 import com.dssathe.cloudburst.service.SecurityService;
+
+import javax.servlet.http.HttpServletRequest;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -14,6 +16,7 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 
 @Controller
 public class UserController {
@@ -29,7 +32,7 @@ public class UserController {
     @RequestMapping(value = "/registration", method = RequestMethod.GET)
     public String registration(Model model) {
         model.addAttribute("userForm", new User());
-
+        
         return "registration";
     }
 
@@ -92,8 +95,8 @@ public class UserController {
     }
     
     @RequestMapping(value = "/deleteReservation", method = RequestMethod.POST)
-    public String deleteReservation(@ModelAttribute("deleteReservationForm") DeleteReservation deleteReservationForm, Model model) {
-    	System.out.println(deleteReservationForm.getId());
+    public String deleteReservation(@RequestParam(value="deleteReservation", required=true) String id) {
+    	System.out.println("Hi id="+id);
     	return "redirect:/welcome";
     }
 }

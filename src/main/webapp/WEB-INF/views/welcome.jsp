@@ -113,7 +113,7 @@ int available = 4;
 	        
             <form id="deleteReservationForm" method="POST" action="${contextPath}/deleteReservation">
             	<input type="hidden"  name="${_csrf.parameterName}"   value="${_csrf.token}"/>
-                <input type="hidden" name="id" value="${resultSet.getString('id')}" />
+                <input type="hidden" id="deleteReservation" name="deleteReservation" value="<%= resultSet.getString("id") %>" />
                 <input type="submit" value="Delete Reservation" name="remove">
             </form>
         	</td>
