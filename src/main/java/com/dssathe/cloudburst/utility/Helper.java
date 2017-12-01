@@ -1,5 +1,7 @@
 package com.dssathe.cloudburst.utility;
 
+import com.dssathe.cloudburst.model.Reservation;
+
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
@@ -16,6 +18,34 @@ public class Helper {
     static Connection connection = null;
     static Statement statement = null;
     static ResultSet resultSet = null;
+
+    public static void insertReservation(Reservation reservation) {
+        try{
+            connection = DriverManager.getConnection(connectionUrl+dbName, userId, password);
+            statement=connection.createStatement();
+            String sql ="insert into reservation" +
+                    "(user_id, image_name, vm_id, source, public_ip, username, password, end_time)"
+                    + " values ("
+                    + reservation.getUser_id() + ", "
+                    + reservation.getImage_name() + ", \""
+                    + reservation.getVm_id() + "\", "
+                    + reservation.getSource() + ", \""
+                    + reservation.getPublic_ip() + "\", \""
+                    + reservation.getUsername() + "\", \""
+                    + reservation.getPassword() + "\", \""
+                    + reservation.getEnd_time() + "\");";
+
+            System.out.println(sql);
+
+            statement.executeUpdate(sql);
+
+            connection.close();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.out.println(e);
+        }
+    }
 
     public static int getAvailable(){
         try{

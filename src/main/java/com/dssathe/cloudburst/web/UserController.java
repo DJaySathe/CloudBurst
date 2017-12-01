@@ -76,9 +76,6 @@ public class UserController {
 
     @RequestMapping(value = "/reservation", method = RequestMethod.POST)
     public String reservation(@ModelAttribute("reserveForm") Reservation reservationForm, Model model) {
-        System.out.println(reservationForm.getUsername());
-        System.out.println(reservationForm.getAmi());
-        System.out.println(reservationForm.getHours());
 
         reservationForm.setPassword("YxAnsK");
 
@@ -88,10 +85,7 @@ public class UserController {
             System.out.println("Unable to create Instance");
         }
         else {
-            reservationForm.setPublicIP(ip);
-            reservationForm.setImage(aws.getImageId());
 
-            reservationForm.save();
         }
         System.out.println("Coming out from aws thing");
         return "redirect:/welcome";
