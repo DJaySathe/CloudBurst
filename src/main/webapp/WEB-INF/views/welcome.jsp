@@ -103,10 +103,10 @@ int available = 4;
         <tr >
 
         <td><%=resultSet.getString("id") %></td>
-        <td><%=resultSet.getString("Image") %></td>
-        <td><%=resultSet.getString("IP Address") %></td>
-        <td><%=resultSet.getString("Username") %></td>
-        <td><%=resultSet.getString("Password") %></td>
+        <td><%=resultSet.getString("image_id") %></td>
+        <td><%=resultSet.getString("public_ip") %></td>
+        <td><%=resultSet.getString("username") %></td>
+        <td><%=resultSet.getString("password") %></td>
         </tr>
 
         <%

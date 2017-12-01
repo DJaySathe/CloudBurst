@@ -99,4 +99,20 @@ public class Reservation {
     public void setEnd_time(String end_time) {
         this.end_time = end_time;
     }
+
+    @Override
+    public String toString() {
+        return "Reservation{" +
+                "id=" + id +
+                ", user_id='" + user_id + '\'' +
+                ", image_name='" + image_name + '\'' +
+                ", vm_id='" + vm_id + '\'' +
+                ", source=" + source +
+                ", public_ip='" + public_ip + '\'' +
+                ", username='" + username + '\'' +
+                ", password='" + password + '\'' +
+                ", start_time='" + start_time + '\'' +
+                ", end_time='" + end_time + '\'' +
+                '}';
+    }
 }

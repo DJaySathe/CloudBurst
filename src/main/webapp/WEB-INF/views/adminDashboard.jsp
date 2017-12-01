@@ -115,7 +115,7 @@ int available = 4;
              <canvas id="chart-area" />
     </div>
 
-    <h4 class="text-center">User Reservations</a></h4>
+    <h4 class="text-center">Reservations Details</a></h4>
             <table class="table table-striped table-bordered table-hover table-condensed" align="center" cellpadding="5" cellspacing="5" border="1">
             <tr>
             </tr>
@@ -168,7 +168,7 @@ int available = 4;
             try{
             connection = DriverManager.getConnection(connectionUrl+dbName, userId, password);
             statement=connection.createStatement();
-            String sql ="SELECT * FROM user";
+            String sql ="SELECT * FROM user u,user_role r where u.id = r.user_id and r.role_id =2";
 
             resultSet = statement.executeQuery(sql);
 
