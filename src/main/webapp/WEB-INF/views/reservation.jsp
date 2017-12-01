@@ -80,7 +80,7 @@ int available = 4;
                     <select name="ami">
                         <option value="centos">CentOS</option>
                     </select>
-                    <select name="hours">
+                    <select name="end_time">
                         <option value="1">1 Hour</option>
                         <option value="2">2 Hours</option>
                         <option value="3">3 Hours</option>
