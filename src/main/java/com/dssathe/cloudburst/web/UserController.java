@@ -12,6 +12,9 @@ import com.dssathe.cloudburst.service.SecurityService;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -94,8 +97,12 @@ public class UserController {
     @RequestMapping(value = "/reservation", method = RequestMethod.POST)
     public String reservation(@ModelAttribute("reserveForm") Reservation reservationForm, Model model) {
 
+    	System.out.println(reservationForm.getEnd_time());
         // decide to spin VM on private cloud or burst to public cloud
         int vm_count = Helper.getAvailable();
+        
+        DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        Calendar cal = Calendar.getInstance();    
 
         if(vm_count > 0) { // reserve on private cloud
             String vm_id = Helper.getAvailablePrivateCloudVM();
@@ -126,14 +133,17 @@ public class UserController {
 
 
               }
-
+              
               reservationForm.setVm_id(vm_id);
               reservationForm.setImage_name("CentOS 7");
               reservationForm.setSource(1);
               reservationForm.setPublic_ip(ip);
               reservationForm.setPassword(pw);
-              reservationForm.setStart_time("2017-11-30 01:01:01");
-              reservationForm.setEnd_time("2017-11-30 01:01:01");
+              reservationForm.setStart_time(dateFormat.format(cal.getTime()));
+              
+              cal.add(Calendar.HOUR_OF_DAY, Integer.parseInt(reservationForm.getEnd_time()));
+              System.out.println("End time="+ dateFormat.format(cal.getTime()));
+              reservationForm.setEnd_time(dateFormat.format(cal.getTime()));
 
               System.out.println(reservationForm.toString());
 
@@ -163,6 +173,7 @@ public class UserController {
     @RequestMapping(value = "/deleteReservation", method = RequestMethod.POST)
     public String deleteReservation(@RequestParam(value="deleteReservation", required=true) Long id) {
     	Reservation reservation = reservationRepository.findOne(id); // fetch reservation to check private/public
+    	
 		try {
 			if(reservation.getSource() == 1) { // Call Script to delete VM on private cloud
 				
