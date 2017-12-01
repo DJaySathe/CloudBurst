@@ -48,4 +48,37 @@ public class Helper {
         }
         return 4;
     }
+
+    public static String getAvailablePrivateCloudVM() {
+      try{
+          connection = DriverManager.getConnection(connectionUrl+dbName, userId, password);
+          statement=connection.createStatement();
+          String sql = "select vm_id from vm_info where availability=1";
+
+          resultSet = statement.executeQuery(sql);
+          // we are assuming atleast 1 vm is free. Call getAvailable() to make sure before calling this function.
+          return resultSet.getInt("id")[0];
+
+      } catch (Exception e) {
+          e.printStackTrace();
+          System.out.println(e);
+      }
+      return "";
+    }
+
+    public static String getIPofPrivateCloudVM(String vm_id) {
+      try{
+          connection = DriverManager.getConnection(connectionUrl+dbName, userId, password);
+          statement=connection.createStatement();
+          String sql = "select public_ip from vm_info where vm_id=" + vm_id;
+
+          resultSet = statement.executeQuery(sql);
+          return resultSet.getString("public_ip");
+
+      } catch (Exception e) {
+          e.printStackTrace();
+          System.out.println(e);
+      }
+      return "";
+    }
 }

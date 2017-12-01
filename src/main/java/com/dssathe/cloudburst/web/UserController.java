@@ -76,17 +76,55 @@ public class UserController {
     @RequestMapping(value = "/reservation", method = RequestMethod.POST)
     public String reservation(@ModelAttribute("reserveForm") Reservation reservationForm, Model model) {
 
-        reservationForm.setPassword("YxAnsK");
+        // decide to spin VM on private cloud or burst to public cloud
+        int vm_count = Helper.getAvailable();
 
-        AWS aws = new AWS();
-        String ip = aws.createInstance(reservationForm.getUsername(), reservationForm.getPassword());
-        if(ip == null) {
-            System.out.println("Unable to create Instance");
-        }
-        else {
+        if(vm_count > 0) { // reserve on private cloud
+            String vm_id = Helper.getAvailablePrivateCloudVM();
+            System.out.println("First available vm id = " + vm_id);
 
+            String ip = Helper.getIPofPrivateCloudVM(vm_id);
+            String username = "dummy";
+
+            try {
+              String command = "sh ../../../../../../../script2.sh";
+
+              System.out.println(command);
+
+              p = Runtime.getRuntime().exec(command);
+              BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()));
+
+              String pw = br.readLine();
+              System.out.println("Private VM id = " + vm_id + "random password = " + password);
+
+              reservationForm.setVm_id(vm_id);
+              reservationForm.setSource(1);
+              reservationForm.setPublic_ip(ip);
+              reservationForm.setPassword(pw);
+
+              Helper.insertReservation(reservationForm);
+
+              p.waitFor();
+              p.destroy();
+
+            } catch (Exception e) {
+                System.out.println("Unable to invoke private cloud reservation: " + e.getMessage() + "\n" + e.getStackTrace());
+            }
+
+        } else { // reserve on public cloud
+          reservationForm.setPassword("YxAnsK");
+
+          AWS aws = new AWS();
+          String ip = aws.createInstance(reservationForm.getUsername(), reservationForm.getPassword());
+          if(ip == null) {
+              System.out.println("Unable to create Instance");
+          }
+          else {
+
+          }
+          System.out.println("Coming out from aws thing");
+          return "redirect:/welcome";
         }
-        System.out.println("Coming out from aws thing");
-        return "redirect:/welcome";
+
     }
 }
