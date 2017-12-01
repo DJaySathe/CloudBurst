@@ -82,7 +82,7 @@ int available = 4;
         try{
         connection = DriverManager.getConnection(connectionUrl+dbName, userId, password);
         statement=connection.createStatement();
-        String sql ="SELECT * FROM vm";
+        String sql ="SELECT * FROM vm_info";
 
         resultSet = statement.executeQuery(sql);
 
@@ -91,15 +91,15 @@ int available = 4;
         <tr >
 
         <td><%=resultSet.getString("id") %></td>
-        <td><%=resultSet.getString("name") %></td>
-        <td><%=resultSet.getInt("Available")==1? "Available" : "Not Available"%></td>
+        <td><%=resultSet.getString("vm_id") %></td>
+        <td><%=resultSet.getInt("availability")==1? "Available" : "Not Available"%></td>
 
         </tr>
 
         <%
         }
         statement=connection.createStatement();
-        String sql1 ="SELECT COUNT(*) as c FROM vm where Available = 1";
+        String sql1 ="SELECT COUNT(*) as c FROM vm_info where availability = 1";
         resultSet1 = statement.executeQuery(sql1);
         resultSet1.next();
         available = resultSet1.getInt("c");

@@ -78,7 +78,7 @@ int available = 4;
                         <option value="${pageContext.request.userPrincipal.name}">${pageContext.request.userPrincipal.name}</option>
                     </select>
                     <select name="ami">
-                        <option value="centos">centos</option>
+                        <option value="centos">CentOS</option>
                     </select>
                     <select name="hours">
                         <option value="1">1 Hour</option>

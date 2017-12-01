@@ -8,6 +8,7 @@ USE `accounts`;
 DROP TABLE IF EXISTS `user_role`;
 DROP TABLE IF EXISTS `role`;
 DROP TABLE IF EXISTS `user`;
+DROP TABLE IF EXISTS `vm_info`;
 DROP TABLE IF EXISTS `reservation`;
 
 --
@@ -66,16 +67,43 @@ INSERT INTO `user_role` VALUES (1,1);
 UNLOCK TABLES;
 
 --
+-- Table structure for table `vm_info`
+--
+
+CREATE TABLE `vm_info` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `vm_id` varchar(25),
+  `public_ip` varchar(25),
+  `availability` int(2) DEFAULT 1,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+
+--
+-- Dumping data for table `vm_info`
+--
+
+LOCK TABLES `vm_info` WRITE;
+insert into vm_info values (1, "VM1", "154.24.13.24:1236", 1);
+insert into vm_info values (2, "VM2", "154.24.13.24:1237", 1);
+insert into vm_info values (3, "VM3", "154.24.13.24:1238", 1);
+insert into vm_info values (4, "VM4", "154.24.13.24:1239", 1);
+UNLOCK TABLES;
+
+--
 -- Table structure for table `reservation`
 --
 
 CREATE TABLE `reservation` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `user_id` int(11),
-  `image_id` varchar(25),
+  `image_name` varchar(25),
+  `vm_id` varchar(25),
+  `source` int(2),
   `public_ip` varchar(25),
   `username` varchar(25),
   `password` varchar(25),
+  `start_time` datetime DEFAULT current_timestamp NOT NULL,
+  `end_time` datetime,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
