@@ -26,7 +26,7 @@ public class Helper {
             String sql ="insert into reservation" +
                     "(user_id, image_name, vm_id, source, public_ip, username, password, end_time)"
                     + " values ("
-                    + reservation.getUser_id() + ", "
+                    + reservation.getUser_id() + ", \""
                     + reservation.getImage_name() + ", \""
                     + reservation.getVm_id() + "\", "
                     + reservation.getSource() + ", \""
@@ -51,7 +51,7 @@ public class Helper {
         try{
             connection = DriverManager.getConnection(connectionUrl+dbName, userId, password);
             statement=connection.createStatement();
-            String sql ="SELECT count(*) as c FROM vm where Available = 1";
+            String sql ="SELECT count(*) as c FROM vm_info where availability = 1";
 
             resultSet = statement.executeQuery(sql);
             return resultSet.getInt("c");
@@ -70,8 +70,9 @@ public class Helper {
           String sql = "select vm_id from vm_info where availability=1";
 
           resultSet = statement.executeQuery(sql);
-          // we are assuming atleast 1 vm is free. Call getAvailable() to make sure before calling this function.
-          return resultSet.getInt("id")[0];
+          // Call getAvailable() to make sure atleast 1 vm is free before calling this function.
+          if(resultSet.next())
+            return resultSet.getString("vm_id"); // return the first available vm
 
       } catch (Exception e) {
           e.printStackTrace();
@@ -84,10 +85,11 @@ public class Helper {
       try{
           connection = DriverManager.getConnection(connectionUrl+dbName, userId, password);
           statement=connection.createStatement();
-          String sql = "select public_ip from vm_info where vm_id=" + vm_id;
+          String sql = "select public_ip from vm_info where vm_id='" + vm_id + "'";
 
           resultSet = statement.executeQuery(sql);
-          return resultSet.getString("public_ip");
+          if(resultSet.next())
+            return resultSet.getString("public_ip");
 
       } catch (Exception e) {
           e.printStackTrace();

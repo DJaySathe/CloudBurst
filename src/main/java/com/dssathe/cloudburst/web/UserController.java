@@ -13,6 +13,9 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import com.dssathe.cloudburst.utility.Helper;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;;
 
 @Controller
 public class UserController {
@@ -84,28 +87,38 @@ public class UserController {
             System.out.println("First available vm id = " + vm_id);
 
             String ip = Helper.getIPofPrivateCloudVM(vm_id);
+            System.out.println("Ip of available vm = " + ip);
+
             String username = "dummy";
 
             try {
-              String command = "sh ../../../../../../../script2.sh";
+              String commands[] = new String[]{"~/script2.sh" ,ip, username, "1"};
+              //String command = "/bin/sh ../../../../../../../script2.sh " + ip + " " + username + " 1";
 
-              System.out.println(command);
+              //System.out.println(command);
 
-              p = Runtime.getRuntime().exec(command);
+              Process p = Runtime.getRuntime().exec(commands);
               BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()));
-
               String pw = br.readLine();
-              System.out.println("Private VM id = " + vm_id + "random password = " + password);
+
+              System.out.println("Private VM id = " + vm_id + " random password = " + pw);
+
+              //p.destroy();
 
               reservationForm.setVm_id(vm_id);
+              reservationForm.setImage_name("CentOS 7");
               reservationForm.setSource(1);
               reservationForm.setPublic_ip(ip);
               reservationForm.setPassword(pw);
+              reservationForm.setStart_time("2017-11-30 01:01:01");
+              reservationForm.setEnd_time("2017-11-30 01:01:01");
+
+              System.out.println(reservationForm.toString());
 
               Helper.insertReservation(reservationForm);
 
-              p.waitFor();
-              p.destroy();
+              // mark the vm as unavailable
+
 
             } catch (Exception e) {
                 System.out.println("Unable to invoke private cloud reservation: " + e.getMessage() + "\n" + e.getStackTrace());
@@ -120,11 +133,11 @@ public class UserController {
               System.out.println("Unable to create Instance");
           }
           else {
-
+            System.out.println(ip);
           }
           System.out.println("Coming out from aws thing");
-          return "redirect:/welcome";
         }
 
+        return "redirect:/welcome";
     }
 }
