@@ -27,7 +27,7 @@ public class AWS {
 
         imageId = "ami-da05a4a0";
         securityGrp = "sg-5a9e4c2f";
-        key = "pod7a_4";
+        key = "my_aws_key2";
     }
 
     public String createInstance(String user, String pass) {
