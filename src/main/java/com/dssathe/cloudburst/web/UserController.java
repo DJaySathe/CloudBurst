@@ -5,8 +5,13 @@ import com.dssathe.cloudburst.model.Reservation;
 import com.dssathe.cloudburst.service.UserService;
 import com.dssathe.cloudburst.validator.UserValidator;
 import com.dssathe.cloudburst.model.User;
+import com.dssathe.cloudburst.model.VmInfo;
 import com.dssathe.cloudburst.repository.ReservationRepository;
+import com.dssathe.cloudburst.repository.VmInfoRepository;
 import com.dssathe.cloudburst.service.SecurityService;
+
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -32,6 +37,9 @@ public class UserController {
     
     @Autowired
     private ReservationRepository reservationRepository;
+    
+    @Autowired
+    private VmInfoRepository vmInfoRepository;
 
     @RequestMapping(value = "/registration", method = RequestMethod.GET)
     public String registration(Model model) {
@@ -101,15 +109,32 @@ public class UserController {
     @RequestMapping(value = "/deleteReservation", method = RequestMethod.POST)
     public String deleteReservation(@RequestParam(value="deleteReservation", required=true) Long id) {
     	Reservation reservation = reservationRepository.findOne(id); // fetch reservation to check private/public
-    	if(reservation.getSource() == 1) { // Call Script to delete VM on private cloud
-    		
-    	}
     	
-    	else { // Call Script to delete VM on public cloud
-    		
-    	}
+		try {
+			if(reservation.getSource() == 1) { // Call Script to delete VM on private cloud
+                String target[] = {"../../../../../../../script.sh", reservation.getPublic_ip(), reservation.getUsername(), "0"};
+                Runtime rt = Runtime.getRuntime();
+                Process proc = rt.exec(target);
+                proc.waitFor();
+                StringBuffer output = new StringBuffer();
+                BufferedReader reader = new BufferedReader(new InputStreamReader(proc.getInputStream()));
+                String line = "";                       
+                while ((line = reader.readLine())!= null) {
+                        output.append(line + "\n");
+                }
+                
+                VmInfo info = vmInfoRepository.findByVmId(reservation.getVm_id());
+	    		info.setAvailability(1);
+	    		vmInfoRepository.save(info);
+			}
+			else { // Call Script to delete VM on public cloud
+	    		AWS.terminateInstance(reservation.getVm_id());
+	    	}
+        } catch (Throwable t) {
+                t.printStackTrace();
+        }
     	
-    	reservationRepository.delete(id); // delete reservation from database
+    	//reservationRepository.delete(id); // delete reservation from database
     	return "redirect:/welcome";
     }
 }
