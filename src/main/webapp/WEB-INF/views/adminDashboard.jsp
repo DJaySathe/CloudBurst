@@ -114,6 +114,47 @@ int available = 4;
     <div id="canvas-holder" style="width:40%">
              <canvas id="chart-area" />
     </div>
+
+    <h4 class="text-center">User Reservations</a></h4>
+            <table class="table table-striped table-bordered table-hover table-condensed" align="center" cellpadding="5" cellspacing="5" border="1">
+            <tr>
+            </tr>
+            <tr >
+                <td><b>ID</b></td>
+                <td><b>VM/AWS ID</b></td>
+                <td><b>Image</b></td>
+                <td><b>IP Address</b></td>
+                <td><b>Username</b></td>
+                <td><b>Start Time</b></td>
+                <td><b>End Time</b></td>
+            </tr>
+            <%
+            try{
+                connection = DriverManager.getConnection(connectionUrl+dbName, userId, password);
+                statement=connection.createStatement();
+                String sql ="SELECT * FROM reservation;";
+                System.out.println(sql);
+                resultSet = statement.executeQuery(sql);
+
+                while(resultSet.next()) {
+                    %>
+                    <tr >
+                    <td><%=resultSet.getString("id") %></td>
+                    <td><%=resultSet.getString("vm_id") %></td>
+                    <td><%=resultSet.getString("image_name") %></td>
+                    <td><%=resultSet.getString("public_ip") %></td>
+                    <td><%=resultSet.getString("username") %></td>
+                    <td><%=resultSet.getString("start_time") %></td>
+                    <td><%=resultSet.getString("end_time") %></td>
+                    </tr>
+                    <%
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            %>
+            </table>
+
     <h4 class="text-center">User Details</a></h4>
     <table class="table table-striped table-bordered table-hover table-condensed" align="center" cellpadding="5" cellspacing="5" border="1">
             <tr>

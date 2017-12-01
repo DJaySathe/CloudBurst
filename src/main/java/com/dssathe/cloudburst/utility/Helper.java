@@ -23,9 +23,23 @@ public class Helper {
         try{
             connection = DriverManager.getConnection(connectionUrl+dbName, userId, password);
             statement=connection.createStatement();
-            String sql ="insert into reservation() values ();";
+            String sql ="insert into reservation" +
+                    "(user_id, image_name, vm_id, source, public_ip, username, password, end_time)"
+                    + " values ("
+                    + reservation.getUser_id() + ", "
+                    + reservation.getImage_name() + ", \""
+                    + reservation.getVm_id() + "\", "
+                    + reservation.getSource() + ", \""
+                    + reservation.getPublic_ip() + "\", \""
+                    + reservation.getUsername() + "\", \""
+                    + reservation.getPassword() + "\", \""
+                    + reservation.getEnd_time() + "\");";
 
-            resultSet = statement.executeQuery(sql);
+            System.out.println(sql);
+
+            statement.executeUpdate(sql);
+
+            connection.close();
 
         } catch (Exception e) {
             e.printStackTrace();
