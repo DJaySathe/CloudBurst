@@ -37,7 +37,10 @@ public class AWS {
         }
         System.out.println("Instance Launched");
 
-        setPublicIP();
+        if(!setPublicIP()) {
+            terminateInstance();
+            return null;
+        }
         System.out.println("Public IP set");
 
         System.out.println("Waiting for status checks");
@@ -46,20 +49,27 @@ public class AWS {
             return null;
         };
 
-        createUser(user, pass);
+        if(!createUser(user, pass)) {
+            terminateInstance();
+            return null;
+        }
 
         return publicIP;
     }
 
-    private void createUser(String user, String pass) {
+    private Boolean createUser(String user, String pass) {
         username = user;
         password = pass;
 
-        runSSH();
+        if(!runSSH()) {
+            return false;
+        }
+
         System.out.println("New user created");
+        return true;
     }
 
-    public void terminateInstance() {
+    public Boolean terminateInstance() {
         Process p;
         try {
             String command = "aws ec2 terminate-instances --instance-ids " + instanceId;
@@ -69,12 +79,15 @@ public class AWS {
             p.waitFor();
             p.destroy();
 
+            return true;
+
         } catch (Exception e) {
             System.out.println("Unable to Terminate: " + e.getMessage());
+            return false;
         }
     }
 
-    public static void terminateInstance(String instance) {
+    public static Boolean terminateInstance(String instance) {
         Process p;
         try {
             String command = "aws ec2 terminate-instances --instance-ids " + instance;
@@ -84,8 +97,11 @@ public class AWS {
             p.waitFor();
             p.destroy();
 
+            return true;
+
         } catch (Exception e) {
             System.out.println("Unable to Terminate: " + e.getMessage());
+            return false;
         }
     }
 
@@ -154,6 +170,7 @@ public class AWS {
 
         } catch (Exception e) {
             System.out.println("Unable to launch: " + e.getMessage() + "\n" + e.getStackTrace());
+            return null;
         }
 
         return instance;
@@ -207,6 +224,7 @@ public class AWS {
 
         } catch (Exception e) {
             System.out.println("Status Check failed: " + e.getStackTrace());
+            return false;
         }
 
         // Both command outputs should change to "passed"
@@ -214,7 +232,7 @@ public class AWS {
         return true;
     }
 
-    private void setPublicIP() {
+    private Boolean setPublicIP() {
         try {
             // Getting ans setting public IP
             String command = "aws ec2 describe-instances --instance-ids " + instanceId + " --query Reservations[0].Instances[0].PublicIpAddress";
@@ -226,13 +244,15 @@ public class AWS {
 
             p.waitFor();
             p.destroy();
+            return true;
 
         } catch (Exception e) {
             System.out.println("Unable to get public IP: " + e.getStackTrace());
+            return false;
         }
     }
 
-    private void runSSH() {
+    private Boolean runSSH() {
         String keyPath = "~/" + key + ".pem";
         String rootUser = "ubuntu";
 
@@ -264,9 +284,11 @@ public class AWS {
 
             channel.disconnect();
             session.disconnect();
+            return true;
 
         } catch (Exception e) {
             System.out.println("Unable to add user: " + e.getStackTrace());
+            return false;
         }
     }
 
