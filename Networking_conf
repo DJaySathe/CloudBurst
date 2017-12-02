@@ -1,3 +1,26 @@
+Setting up envirnoment:
+
+1.Install KVM and virt-manager
+	sudo apt-get install kvm-qemu virt-manager
+2.Lanuch VMs using below command( Change the file location in the command)
+	sudo virt-install --name VM1 --ram 2048 --disk path=/var/lib/libvirt/images/Vm1.img,bus=virtio,size=4 -c /home/ymuppal/CentOS-7-x86_64-DVD-1708.iso --network network=default,model=virtio 
+3. Settup the VMS using GUi
+4. Once VM's installed run the dhclient -v command on both Host and on vms
+5. Steps to make static IP on the machines
+        ---> log on to VM
+	----> open /etc/sysconfig/network-scripts/ifcfg-eth0 file
+	----> Add IPADDR = <IP of VM>
+		  GATEWAY = 0.0.0.0
+		  NETMASK = 255.255.255.0
+		  ONBOOT = yes
+		  BOOTPROT0 = static
+        -----> Reboot the VMs
+	-----> check whether the IP and MAC remain same as previous
+		
+
+
+
+
 NEtworing COnfiguration:
 
 1. Login to the Machine
