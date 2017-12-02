@@ -15,6 +15,7 @@ import java.io.InputStreamReader;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.concurrent.*;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -102,16 +103,18 @@ public class UserController {
         reservationForm.setImage_name("CentOS 7");
         reservationForm.setPublic_ip("");
         reservationForm.setPassword("");
+
+        DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        Calendar cal = Calendar.getInstance();
         reservationForm.setStart_time(dateFormat.format(cal.getTime()));
-        cal.add(Calendar.HOUR_OF_DAY, Integer.parseInt(reservationForm.getEnd_time()));
+
+        int duration = Integer.parseInt(reservationForm.getEnd_time());
+        cal.add(Calendar.MINUTE, duration);
         //System.out.println("End time="+ dateFormat.format(cal.getTime()));
         reservationForm.setEnd_time(dateFormat.format(cal.getTime()));
 
         // decide to spin VM on private cloud or burst to public cloud
         int vm_count = Helper.getAvailable();
-
-        DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        Calendar cal = Calendar.getInstance();
 
         if(vm_count > 0) { // reserve on private cloud
             vm_id = Helper.getAvailablePrivateCloudVM(); // this function marks the vm as unavailable
@@ -134,6 +137,18 @@ public class UserController {
               if(reservationID != -1) {
                 final long reserveID = reservationID;
                 final String vmID = vm_id;
+
+                // schedule a future task to delete reservation on end time
+                System.out.println("Scheduling a task to delete reservation on end time");
+                Helper.scheduler.schedule(new Runnable() {
+                    @Override
+                    public void run() {
+                        System.out.println("\nTime's up! Start deleting reservation number " + reserveID + " if present.\n");
+
+                        if(Helper.reservationExists(reserveID))
+                          removeReservation(reserveID);
+
+                    }}, duration, TimeUnit.MINUTES);
 
                 // create a thread to setup the private cloud VM
                 Thread setupVM = new Thread() {
@@ -199,7 +214,6 @@ public class UserController {
               public void run() {
                 try {
                   System.out.println("Starting AWS cloud provisioning");
-                  Thread.sleep(3 * 1000);
 
                   // generate random password
                   String pw = "YxAnsK";
@@ -229,48 +243,59 @@ public class UserController {
               }
             };
             setupAWS.start();
-
           }
-
         }
-
         return "redirect:/welcome";
     }
 
     @RequestMapping(value = "/deleteReservation", method = RequestMethod.POST)
     public String deleteReservation(@RequestParam(value="deleteReservation", required=true) Long id) {
-    	Reservation reservation = reservationRepository.findOne(id); // fetch reservation to check private/public
+    	if(Helper.reservationExists(id))
+        removeReservation(id);
+    	return "redirect:/welcome";
+    }
+
+    public void removeReservation(long id) {
+      final Reservation reservation = reservationRepository.findOne(id); // fetch reservation object
 
       System.out.println("Delete reservation with id=" + reservation.getId() + " ip=" + reservation.getPublic_ip() + " user=" + reservation.getUsername());
 
-      try {
-        if(reservation.getSource() == 1) { // Call Script to delete VM on private cloud
+      // delete reservation from database
+      reservationRepository.delete(id);
+      System.out.println("Deleted reservation from db");
 
-          Process p = new ProcessBuilder("/bin/sh", System.getProperty("user.dir") + "/script2.sh", reservation.getPublic_ip(), reservation.getUsername(), "0").start();
-	        p.waitFor();
+      // create a thread to terminate/clean up the VM
+      Thread terminateVM = new Thread() {
+        @Override
+        public void run() {
+          try {
+            System.out.println("Starting VM cleanup");
+            Thread.sleep(3 * 1000);
 
-	        BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()));
-	        String value = br.readLine();
-	        System.out.println("Return code from delete bash script:" + value);
+            if(reservation.getSource() == 1) { // delete VM on private cloud
 
-          // mark the vm as available
-          String vm_id = reservation.getVm_id();
-          Helper.markAvailability(vm_id, 1);
-          /*
-          VmInfo info = vmInfoRepository.findByVmId(reservation.getVm_id());
-	    		info.setAvailability(1);
-	    		vmInfoRepository.save(info);
-          */
+              Process p = new ProcessBuilder("/bin/sh", System.getProperty("user.dir") + "/script2.sh", reservation.getPublic_ip(), reservation.getUsername(), "0").start();
+              p.waitFor();
 
-        } else { // Call Script to delete VM on public cloud
-	    		AWS.terminateInstance(reservation.getVm_id());
-	    	}
-      } catch (Throwable t) {
-          t.printStackTrace();
-      }
+              BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()));
+              String value = br.readLine();
+              System.out.println("Return code from delete bash script:" + value);
 
-    	reservationRepository.delete(id); // delete reservation from database
+              // mark the vm as available
+              String vm_id = reservation.getVm_id();
+              Helper.markAvailability(vm_id, 1);
 
-    	return "redirect:/welcome";
+            } else { // delete VM on public cloud
+              AWS.terminateInstance(reservation.getVm_id());
+            }
+
+            System.out.println("Coming out of VM cleanup");
+
+          } catch (Exception e) {
+              System.out.println("Unable to complete VM cleanup / termination: " + e.getMessage() + "\n" + e.getStackTrace());
+          }
+        }
+      };
+      terminateVM.start();
     }
 }

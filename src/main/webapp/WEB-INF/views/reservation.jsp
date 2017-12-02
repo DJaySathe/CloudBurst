@@ -75,14 +75,16 @@ int available = 4;
             <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/>
                 <div class="form-group">
                 	<input type="hidden"  name="username" value="${pageContext.request.userPrincipal.name}"/>
-                    
+
                     <select name="ami">
                         <option value="centos">CentOS</option>
                     </select>
                     <select name="end_time">
-                        <option value="1">1 Hour</option>
-                        <option value="2">2 Hours</option>
-                        <option value="3">3 Hours</option>
+                        <option value="5">5 Mins</option>
+                        <option value="10">10 Mins</option>
+                        <option value="60">1 Hour</option>
+                        <option value="120">2 Hours</option>
+                        <option value="180">3 Hours</option>
                     </select>
 
                     <button class="btn btn-lg btn-primary btn-block" type="reserve">Reserve</button>

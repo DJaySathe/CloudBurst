@@ -7,6 +7,8 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.Statement;
 
+import java.util.concurrent.*;
+
 public class Helper {
 
     static String driverName = "com.mysql.jdbc.Driver";
@@ -18,6 +20,8 @@ public class Helper {
     static Connection connection = null;
     static Statement statement = null;
     static ResultSet resultSet = null;
+
+    public static ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(4);
 
     public static long insertReservation(Reservation reservation) {
         long id = -1;
@@ -67,6 +71,23 @@ public class Helper {
       }
     }
 
+    public static Boolean reservationExists(long reservationID) {
+      try{
+          connection = DriverManager.getConnection(connectionUrl+dbName, userId, password);
+          statement=connection.createStatement();
+          String sql = "select id from reservation where id = " + reservationID;
+
+          resultSet = statement.executeQuery(sql);
+          if(resultSet.next())
+            return true;
+
+      } catch (Exception e) {
+          e.printStackTrace();
+          System.out.println(e);
+      }
+      return false;
+    }
+
     public static int getAvailable(){
         try{
             connection = DriverManager.getConnection(connectionUrl+dbName, userId, password);
@@ -76,14 +97,12 @@ public class Helper {
             resultSet = statement.executeQuery(sql);
             if(resultSet.next())
               return resultSet.getInt("c");
-            else
-              return 0;
 
         } catch (Exception e) {
             e.printStackTrace();
             System.out.println(e);
         }
-        return 4;
+        return 0;
     }
 
     public static int markAvailability(String vm_id, int val){
