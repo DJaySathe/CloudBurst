@@ -1,0 +1,18 @@
+NEtworing COnfiguration:
+
+1. Login to the Machine
+2. execute sudo virsh list --all   ---->check the 4vms are running
+3. sudo virsh net-dhcp-leases default ---> check the Vms have IP (Note, to make sure everything fine, check IP's manually login to each machine as well)
+4. Ping the VM's (Ping should work) if not something wrong in assiging IP
+5. Applying NAT rules.(Before apply nar rules, u can check if there exist any by executing (sudo iptables -t nat -nL)
+	sudo iptables -t nat -I PREROUTING -p tcp -d <host_IP> --dport 1235 -j DNAT --to-destination <VM1_IP:22
+	sudo iptables -t nat -I PREROUTING -p tcp -d <host_IP> --dport 1236 -j DNAT --to-destination <VM2_IP>:22
+	sudo iptables -t nat -I PREROUTING -p tcp -d <host_IP> --dport 1237 -j DNAT --to-destination  <VM3_IP>:22
+	sudo iptables -I FORWARD -m state -d 192.168.122.0/24 --state NEW,RELATED,ESTABLISHED -j ACCEPT
+6. execute below commands on host machine
+	  sysctl net.ipv4.ip_forward
+	  echo 1 > /proc/sys/net/ipv4/ip_forward(need route privilges to execute this)
+7. Try to ssh the host machine from your laptop via port 22, its should works
+	if not, try to check whether ping is working in both direction
+8. Now you should able to ssh to the VM's via Host via and port numbers
+9. 
