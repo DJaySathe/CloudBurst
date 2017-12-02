@@ -19,13 +19,13 @@ public class Helper {
     static Statement statement = null;
     static ResultSet resultSet = null;
 
-    public static int insertReservation(Reservation reservation) {
-        int id = -1;
+    public static long insertReservation(Reservation reservation) {
+        long id = -1;
         try{
             connection = DriverManager.getConnection(connectionUrl+dbName, userId, password);
             statement=connection.createStatement();
             String sql ="insert into reservation" +
-                    "(user_id, image_name, vm_id, source, public_ip, username, password, end_time)"
+                    "(user_id, image_name, vm_id, source, public_ip, username, password, start_time, end_time)"
                     + " values ("
                     + reservation.getUser_id() + ", \""
                     + reservation.getImage_name() +  "\", \""
@@ -34,6 +34,7 @@ public class Helper {
                     + reservation.getPublic_ip() + "\", \""
                     + reservation.getUsername() + "\", \""
                     + reservation.getPassword() + "\", \""
+                    + reservation.getStart_time() + "\", \""
                     + reservation.getEnd_time() + "\");";
 
             System.out.println(sql);
@@ -42,7 +43,7 @@ public class Helper {
             ResultSet rs = statement.getGeneratedKeys();
 
             if (rs.next())
-              id = rs.getInt(1);
+              id = rs.getLong(1);
 
             connection.close();
 
@@ -51,6 +52,19 @@ public class Helper {
             System.out.println(e);
         }
         return id;
+    }
+
+    public static void updateReservation(long reservationID, String ip, String pw) {
+      try{
+          connection = DriverManager.getConnection(connectionUrl+dbName, userId, password);
+          statement=connection.createStatement();
+          String sql = "update reservation set public_ip = '" + ip + "', password = '" + pw + "' where id = " + reservationID;
+          statement.executeUpdate(sql);
+
+      } catch (Exception e) {
+          e.printStackTrace();
+          System.out.println(e);
+      }
     }
 
     public static int getAvailable(){
@@ -88,7 +102,7 @@ public class Helper {
         return 0;
     }
 
-    public static String getAvailablePrivateCloudVM() {
+    public static synchronized String getAvailablePrivateCloudVM() {
       try{
           connection = DriverManager.getConnection(connectionUrl+dbName, userId, password);
           statement=connection.createStatement();
@@ -96,8 +110,12 @@ public class Helper {
 
           resultSet = statement.executeQuery(sql);
           // Call getAvailable() to make sure atleast 1 vm is free before calling this function.
-          if(resultSet.next())
-            return resultSet.getString("vm_id"); // return the first available vm
+          if(resultSet.next()) {
+            String vm_id = resultSet.getString("vm_id"); // get the first available vm
+            // mark the vm as unavailable
+            markAvailability(vm_id, 0);
+            return vm_id;
+          }
 
       } catch (Exception e) {
           e.printStackTrace();

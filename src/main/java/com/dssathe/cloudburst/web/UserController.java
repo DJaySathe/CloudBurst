@@ -96,9 +96,9 @@ public class UserController {
 
     @RequestMapping(value = "/reservation", method = RequestMethod.POST)
     public String reservation(@ModelAttribute("reserveForm") Reservation reservationForm, Model model) {
-        int reservationID = -1;
+        long reservationID = -1;
+        String vm_id = "";
 
-    	System.out.println(reservationForm.getEnd_time());
         // decide to spin VM on private cloud or burst to public cloud
         int vm_count = Helper.getAvailable();
 
@@ -106,41 +106,25 @@ public class UserController {
         Calendar cal = Calendar.getInstance();
 
         if(vm_count > 0) { // reserve on private cloud
-            String vm_id = Helper.getAvailablePrivateCloudVM();
+            vm_id = Helper.getAvailablePrivateCloudVM(); // this function marks the vm as unavailable
             System.out.println("First available vm id = " + vm_id);
 
-            String ip = Helper.getIPofPrivateCloudVM(vm_id);
-            System.out.println("Ip of available vm = " + ip);
+            if(vm_id != null && vm_id != "") {
 
-            String username = "dummy";
+              final String ip = Helper.getIPofPrivateCloudVM(vm_id);
+              System.out.println("Ip of available vm = " + ip);
 
-            try {
-              // get the password
-              System.out.println("Running script:" + System.getProperty("user.dir") + "/script2.sh");
-
-              Process p = new ProcessBuilder("/bin/sh", System.getProperty("user.dir") + "/script2.sh", ip, username, "1").start();
-              p.waitFor();
-
-              BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()));
-              String pw = br.readLine();
-              System.out.println("Private VM id = " + vm_id + " random password = " + pw);
-
-              // TODO: if password is null don't create reservation. Let user know.
-              if(pw == null || pw == "") {
-
-
-
-              }
-
+              // create a reservation in the db
               reservationForm.setVm_id(vm_id);
               reservationForm.setImage_name("CentOS 7");
               reservationForm.setSource(1);
-              reservationForm.setPublic_ip(ip);
-              reservationForm.setPassword(pw);
+              reservationForm.setPublic_ip("");
+              reservationForm.setPassword("");
+
               reservationForm.setStart_time(dateFormat.format(cal.getTime()));
 
               cal.add(Calendar.HOUR_OF_DAY, Integer.parseInt(reservationForm.getEnd_time()));
-              System.out.println("End time="+ dateFormat.format(cal.getTime()));
+              //System.out.println("End time="+ dateFormat.format(cal.getTime()));
               reservationForm.setEnd_time(dateFormat.format(cal.getTime()));
 
               System.out.println(reservationForm.toString());
@@ -148,11 +132,48 @@ public class UserController {
               reservationID = Helper.insertReservation(reservationForm);
               System.out.format("Created new reservation with ID= %d\n", reservationID);
 
-              // mark the vm as unavailable
-              Helper.markAvailability(vm_id, 0);
+              if(reservationID != -1) {
+                final long reserveID = reservationID;
+                // create a thread to setup the private cloud VM
+                Thread setupVM = new Thread() {
+                  @Override
+                  public void run() {
+                      try {
+                          System.out.println("Starting private cloud provisioning");
+                          Thread.sleep(3 * 1000);
 
-            } catch (Exception e) {
-                System.out.println("Unable to invoke private cloud reservation: " + e.getMessage() + "\n" + e.getStackTrace());
+                          // get the password
+                          System.out.println("Running script:" + System.getProperty("user.dir") + "/script2.sh");
+                          Process p = new ProcessBuilder("/bin/sh", System.getProperty("user.dir") + "/script2.sh", ip, reservationForm.getUsername(), "1").start();
+                          p.waitFor();
+
+                          BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()));
+                          String pw = br.readLine();
+                          System.out.println("random password for new reservation = " + pw);
+
+                          // TODO: if password is null delete the reservation from db and set vm as available
+                          if(pw == null || pw == "") {
+
+
+
+                          } else {
+                            // set the public ip and password for the reservation in the db
+                            Helper.updateReservation(reserveID, ip, pw);
+                          }
+
+                          System.out.println("Coming out of private cloud provisioning");
+
+                      } catch (Exception e) {
+                          System.out.println("Unable to invoke private cloud reservation: " + e.getMessage() + "\n" + e.getStackTrace());
+                          // TODO: delete the reservation from db and set vm as available
+                      }
+                  }
+                };
+                setupVM.start();
+
+              } else { // reservation could not be created in the db. Set vm as available.
+                  Helper.markAvailability(vm_id, 1);
+              }
             }
 
         } else { // reserve on public cloud
