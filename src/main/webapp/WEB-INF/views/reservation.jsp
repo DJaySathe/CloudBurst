@@ -74,9 +74,8 @@ int available = 4;
         <form method="POST" action="${contextPath}/reservation" class="form-reservation">
             <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/>
                 <div class="form-group">
-                    <select name="username">
-                        <option value="${pageContext.request.userPrincipal.name}">${pageContext.request.userPrincipal.name}</option>
-                    </select>
+                	<input type="hidden"  name="username" value="${pageContext.request.userPrincipal.name}"/>
+                    
                     <select name="ami">
                         <option value="centos">CentOS</option>
                     </select>
