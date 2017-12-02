@@ -42,7 +42,7 @@ public class UserController {
 
     @Autowired
     private ReservationRepository reservationRepository;
-    
+
     @Autowired
     private VmInfoRepository vmInfoRepository;
 
@@ -96,13 +96,14 @@ public class UserController {
 
     @RequestMapping(value = "/reservation", method = RequestMethod.POST)
     public String reservation(@ModelAttribute("reserveForm") Reservation reservationForm, Model model) {
+        int reservationID = -1;
 
     	System.out.println(reservationForm.getEnd_time());
         // decide to spin VM on private cloud or burst to public cloud
         int vm_count = Helper.getAvailable();
-        
+
         DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        Calendar cal = Calendar.getInstance();    
+        Calendar cal = Calendar.getInstance();
 
         if(vm_count > 0) { // reserve on private cloud
             String vm_id = Helper.getAvailablePrivateCloudVM();
@@ -124,47 +125,64 @@ public class UserController {
               String pw = br.readLine();
               System.out.println("Private VM id = " + vm_id + " random password = " + pw);
 
-              // mark the vm as unavailable
-              int update_count = Helper.markUnavailable(vm_id);
-
-              // if password is null or vm wasn't marked unavailable, don't create reservation
-              if(pw == null || pw == "" || update_count == 0) {
+              // TODO: if password is null don't create reservation. Let user know.
+              if(pw == null || pw == "") {
 
 
 
               }
-              
+
               reservationForm.setVm_id(vm_id);
               reservationForm.setImage_name("CentOS 7");
               reservationForm.setSource(1);
               reservationForm.setPublic_ip(ip);
               reservationForm.setPassword(pw);
               reservationForm.setStart_time(dateFormat.format(cal.getTime()));
-              
+
               cal.add(Calendar.HOUR_OF_DAY, Integer.parseInt(reservationForm.getEnd_time()));
               System.out.println("End time="+ dateFormat.format(cal.getTime()));
               reservationForm.setEnd_time(dateFormat.format(cal.getTime()));
 
               System.out.println(reservationForm.toString());
 
-              Helper.insertReservation(reservationForm);
+              reservationID = Helper.insertReservation(reservationForm);
+              System.out.format("Created new reservation with ID= %d\n", reservationID);
+
+              // mark the vm as unavailable
+              Helper.markAvailability(vm_id, 0);
 
             } catch (Exception e) {
                 System.out.println("Unable to invoke private cloud reservation: " + e.getMessage() + "\n" + e.getStackTrace());
             }
 
         } else { // reserve on public cloud
-          reservationForm.setPassword("YxAnsK");
+
+          reservationForm.setVm_id("Some AWS ID");
+          reservationForm.setImage_name("CentOS 7");
+          reservationForm.setSource(0);
+          reservationForm.setStart_time("2017-11-30 01:01:01");
+          reservationForm.setEnd_time("2017-11-30 01:01:01");
+
+          System.out.println(reservationForm.toString());
+
+          Helper.insertReservation(reservationForm);
+
+          String pw = "YxAnsK";
 
           AWS aws = new AWS();
-          String ip = aws.createInstance(reservationForm.getUsername(), reservationForm.getPassword());
+          String ip = aws.createInstance(reservationForm.getUsername(), pw);
           if(ip == null) {
-              System.out.println("Unable to create Instance");
+              System.out.println("Unable to create AWS Instance");
+
+              // TODO: let user know
+              // TODO: delete reservation from db
           }
           else {
-            System.out.println(ip);
+            System.out.println("AWS instance ip: " + ip);
+
+            // TODO: update ip and password for reservation in database
           }
-          System.out.println("Coming out from aws thing");
+          System.out.println("Coming out from aws provisioning.");
         }
 
         return "redirect:/welcome";
@@ -173,28 +191,35 @@ public class UserController {
     @RequestMapping(value = "/deleteReservation", method = RequestMethod.POST)
     public String deleteReservation(@RequestParam(value="deleteReservation", required=true) Long id) {
     	Reservation reservation = reservationRepository.findOne(id); // fetch reservation to check private/public
-    	
-		try {
-			if(reservation.getSource() == 1) { // Call Script to delete VM on private cloud
-				
-				Process p = new ProcessBuilder("/bin/sh", System.getProperty("user.dir") + "/script2.sh", reservation.getPublic_ip(), reservation.getUsername(), "0").start();
-	            p.waitFor();
-	
-	            BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()));
-	            String value = br.readLine();
-	            System.out.println("Success" + value);
-                
-                VmInfo info = vmInfoRepository.findByVmId(reservation.getVm_id());
+
+      System.out.println("Delete reservation with id=" + reservation.getId() + " ip=" + reservation.getPublic_ip() + " user=" + reservation.getUsername());
+
+      try {
+        if(reservation.getSource() == 1) { // Call Script to delete VM on private cloud
+
+          Process p = new ProcessBuilder("/bin/sh", System.getProperty("user.dir") + "/script2.sh", reservation.getPublic_ip(), reservation.getUsername(), "0").start();
+	        p.waitFor();
+
+	        BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()));
+	        String value = br.readLine();
+	        System.out.println("Return code from delete bash script:" + value);
+
+          // mark the vm as available
+          String vm_id = reservation.getVm_id();
+          Helper.markAvailability(vm_id, 1);
+          /*
+          VmInfo info = vmInfoRepository.findByVmId(reservation.getVm_id());
 	    		info.setAvailability(1);
 	    		vmInfoRepository.save(info);
-			}
-			else { // Call Script to delete VM on public cloud
+          */
+
+        } else { // Call Script to delete VM on public cloud
 	    		AWS.terminateInstance(reservation.getVm_id());
 	    	}
-        } catch (Throwable t) {
-                t.printStackTrace();
-        }
-    	
+      } catch (Throwable t) {
+          t.printStackTrace();
+      }
+
     	reservationRepository.delete(id); // delete reservation from database
 
     	return "redirect:/welcome";

@@ -13,7 +13,7 @@ hostip=$1
 username=$2
 flag=$3
 if [ "$3" = "1" ]
- then echo "random password"
+ then echo "random pw"
 else
- ssh echo 1
+ echo "1"
 fi
