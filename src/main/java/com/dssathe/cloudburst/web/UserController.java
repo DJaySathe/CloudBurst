@@ -99,6 +99,14 @@ public class UserController {
         long reservationID = -1;
         String vm_id = "";
 
+        reservationForm.setImage_name("CentOS 7");
+        reservationForm.setPublic_ip("");
+        reservationForm.setPassword("");
+        reservationForm.setStart_time(dateFormat.format(cal.getTime()));
+        cal.add(Calendar.HOUR_OF_DAY, Integer.parseInt(reservationForm.getEnd_time()));
+        //System.out.println("End time="+ dateFormat.format(cal.getTime()));
+        reservationForm.setEnd_time(dateFormat.format(cal.getTime()));
+
         // decide to spin VM on private cloud or burst to public cloud
         int vm_count = Helper.getAvailable();
 
@@ -116,16 +124,7 @@ public class UserController {
 
               // create a reservation in the db
               reservationForm.setVm_id(vm_id);
-              reservationForm.setImage_name("CentOS 7");
               reservationForm.setSource(1);
-              reservationForm.setPublic_ip("");
-              reservationForm.setPassword("");
-
-              reservationForm.setStart_time(dateFormat.format(cal.getTime()));
-
-              cal.add(Calendar.HOUR_OF_DAY, Integer.parseInt(reservationForm.getEnd_time()));
-              //System.out.println("End time="+ dateFormat.format(cal.getTime()));
-              reservationForm.setEnd_time(dateFormat.format(cal.getTime()));
 
               System.out.println(reservationForm.toString());
 
@@ -134,6 +133,8 @@ public class UserController {
 
               if(reservationID != -1) {
                 final long reserveID = reservationID;
+                final String vmID = vm_id;
+
                 // create a thread to setup the private cloud VM
                 Thread setupVM = new Thread() {
                   @Override
@@ -151,10 +152,10 @@ public class UserController {
                           String pw = br.readLine();
                           System.out.println("random password for new reservation = " + pw);
 
-                          // TODO: if password is null delete the reservation from db and set vm as available
+                          // if password is null delete the reservation from db and set vm as available
                           if(pw == null || pw == "") {
-
-
+                            reservationRepository.delete(reserveID);
+                            Helper.markAvailability(vmID, 1);
 
                           } else {
                             // set the public ip and password for the reservation in the db
@@ -165,7 +166,9 @@ public class UserController {
 
                       } catch (Exception e) {
                           System.out.println("Unable to invoke private cloud reservation: " + e.getMessage() + "\n" + e.getStackTrace());
-                          // TODO: delete the reservation from db and set vm as available
+                          // delete the reservation from db and set vm as available
+                          reservationRepository.delete(reserveID);
+                          Helper.markAvailability(vmID, 1);
                       }
                   }
                 };
@@ -178,32 +181,57 @@ public class UserController {
 
         } else { // reserve on public cloud
 
+          // create a reservation in the db
           reservationForm.setVm_id("Some AWS ID");
-          reservationForm.setImage_name("CentOS 7");
           reservationForm.setSource(0);
-          reservationForm.setStart_time("2017-11-30 01:01:01");
-          reservationForm.setEnd_time("2017-11-30 01:01:01");
 
           System.out.println(reservationForm.toString());
 
-          Helper.insertReservation(reservationForm);
+          reservationID = Helper.insertReservation(reservationForm);
+          System.out.format("Created new reservation with ID= %d\n", reservationID);
 
-          String pw = "YxAnsK";
+          if(reservationID != -1) {
+            final long reserveID = reservationID;
 
-          AWS aws = new AWS();
-          String ip = aws.createInstance(reservationForm.getUsername(), pw);
-          if(ip == null) {
-              System.out.println("Unable to create AWS Instance");
+            // create a thread to setup the AWS VM
+            Thread setupAWS = new Thread() {
+              @Override
+              public void run() {
+                try {
+                  System.out.println("Starting AWS cloud provisioning");
+                  Thread.sleep(3 * 1000);
 
-              // TODO: let user know
-              // TODO: delete reservation from db
+                  // generate random password
+                  String pw = "YxAnsK";
+
+                  AWS aws = new AWS();
+                  String ip = aws.createInstance(reservationForm.getUsername(), pw);
+
+                  if(ip == null) {
+                      System.out.println("Unable to create AWS Instance");
+                      // delete reservation from db
+                      reservationRepository.delete(reserveID);
+                  }
+                  else {
+                    System.out.println("AWS instance ip: " + ip);
+                    // update ip and password for reservation in database
+                    Helper.updateReservation(reserveID, ip, pw);
+                    // TODO: set aws instance id
+                  }
+
+                  System.out.println("Coming out of AWS cloud provisioning");
+
+                } catch (Exception e) {
+                    System.out.println("Unable to invoke AWS cloud reservation: " + e.getMessage() + "\n" + e.getStackTrace());
+                    // delete the reservation from db
+                    reservationRepository.delete(reserveID);
+                }
+              }
+            };
+            setupAWS.start();
+
           }
-          else {
-            System.out.println("AWS instance ip: " + ip);
 
-            // TODO: update ip and password for reservation in database
-          }
-          System.out.println("Coming out from aws provisioning.");
         }
 
         return "redirect:/welcome";
