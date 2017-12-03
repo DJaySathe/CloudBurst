@@ -6,14 +6,25 @@
 # Date: 01/21/15
 #
 ###
-
-
+ 
+ 
 # Declare local variables, generate random password.
 hostip=$1
 username=$2
 flag=$3
-if [ "$3" = "1" ]
- then ssh root@$1 "bash -s" < add_script.sh $2
+ping -q -c 1 $1 > /dev/null
+
+if [ ! $? -eq 0 ]
+then
+        echo "Network Not reachable"
+	exit
+fi
+
+if [ $3 -eq 1 ]
+then ssh root@$1 "bash -s" < add_script.sh $2 
+elif [ $3 -eq 0 ]
+then 
+  ssh root@$1 "bash -s" < delete_script.sh $2
 else
- ssh root@$1 "bash -s" < delete_script.sh $2
+echo "Wrong Input"
 fi

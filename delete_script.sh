@@ -1,10 +1,6 @@
 #!/bin/sh
 ####
-# This script automatically creates user accounts with random passwords.
-#
-# Author: Russ Sanderlin
-# Date: 01/21/15
-#
+#This script delets the user
 ###
  
  
@@ -15,7 +11,7 @@ newuser=$1
  
 # Create new user and assign random password.
  
-userdel $newuser
+userdel -r $newuser
 #echo $newuser:$randompw | chpasswd
 echo "UserID:" $newuser "has been deleted successfully"
 
