@@ -196,54 +196,55 @@ public class UserController {
 
         } else { // reserve on public cloud
 
-          // create a reservation in the db
-          reservationForm.setVm_id("Some AWS ID");
-          reservationForm.setSource(0);
+            AWS aws = new AWS();
+            String instance_id = aws.createInstance();
 
-          System.out.println(reservationForm.toString());
+            // create a reservation in the db
+            reservationForm.setVm_id(instance_id);
+            reservationForm.setSource(0);
 
-          reservationID = Helper.insertReservation(reservationForm);
-          System.out.format("Created new reservation with ID= %d\n", reservationID);
+            System.out.println(reservationForm.toString());
 
-          if(reservationID != -1) {
-            final long reserveID = reservationID;
+            reservationID = Helper.insertReservation(reservationForm);
+            System.out.format("Created new reservation with ID= %d\n", reservationID);
 
-            // create a thread to setup the AWS VM
-            Thread setupAWS = new Thread() {
-              @Override
-              public void run() {
-                try {
-                  System.out.println("Starting AWS cloud provisioning");
+            if(reservationID != -1) {
+                final long reserveID = reservationID;
 
-                  // generate random password
-                  String pw = "YxAnsK";
+                // create a thread to setup the AWS VM
+                Thread setupAWS = new Thread() {
+                    @Override
+                    public void run() {
+                        try {
+                            System.out.println("Starting AWS cloud provisioning");
 
-                  AWS aws = new AWS();
-                  String ip = aws.createInstance(reservationForm.getUsername(), pw);
+                            // generate random password
+                            String pw = "YxAnsK";
 
-                  if(ip == null) {
-                      System.out.println("Unable to create AWS Instance");
-                      // delete reservation from db
-                      reservationRepository.delete(reserveID);
-                  }
-                  else {
-                    System.out.println("AWS instance ip: " + ip);
-                    // update ip and password for reservation in database
-                    Helper.updateReservation(reserveID, ip, pw);
-                    // TODO: set aws instance id
-                  }
+                            String ip = aws.setupInstance(reservationForm.getUsername(), pw);
 
-                  System.out.println("Coming out of AWS cloud provisioning");
+                            if(ip == null) {
+                                System.out.println("Unable to create AWS Instance");
+                                // delete reservation from db
+                                reservationRepository.delete(reserveID);
+                            }
+                            else {
+                                System.out.println("AWS instance ip: " + ip);
+                                // update ip and password for reservation in database
+                                Helper.updateReservation(reserveID, ip, pw);
+                            }
 
-                } catch (Exception e) {
-                    System.out.println("Unable to invoke AWS cloud reservation: " + e.getMessage() + "\n" + e.getStackTrace());
-                    // delete the reservation from db
-                    reservationRepository.delete(reserveID);
-                }
-              }
-            };
-            setupAWS.start();
-          }
+                            System.out.println("Coming out of AWS cloud provisioning");
+
+                        } catch (Exception e) {
+                            System.out.println("Unable to invoke AWS cloud reservation: " + e.getMessage() + "\n" + e.getStackTrace());
+                            // delete the reservation from db
+                            reservationRepository.delete(reserveID);
+                        }
+                    }
+                };
+                setupAWS.start();
+            }
         }
         return "redirect:/welcome";
     }

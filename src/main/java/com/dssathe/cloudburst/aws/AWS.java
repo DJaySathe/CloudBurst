@@ -30,14 +30,18 @@ public class AWS {
         key = "my_aws_key3";
     }
 
-    public String createInstance(String user, String pass) {
+    public String createInstance() {
         instanceId = launch();
-        if(instanceId == null) {
+        if (instanceId == null) {
             return null;
         }
         System.out.println("Instance Launched");
 
-        if(!setPublicIP()) {
+        return instanceId;
+    }
+
+    public String setupInstance(String user, String pass) {
+        if (!setPublicIP()) {
             terminateInstance();
             return null;
         }
