@@ -22,9 +22,27 @@ e.printStackTrace();
 
 Connection connection = null;
 Statement statement = null;
+ResultSet resultSet0 = null;
 ResultSet resultSet = null;
 ResultSet resultSet1 = null;
-int available = 4;
+int available = 0;
+int max_available = 0;
+
+try {
+    connection = DriverManager.getConnection(connectionUrl+dbName, userId, password);
+    statement=connection.createStatement();
+    String sql0 ="SELECT count(*) as c FROM vm_info where availability = 1";
+    resultSet0 = statement.executeQuery(sql0);
+    resultSet0.next();
+    available = resultSet0.getInt("c");
+
+    sql0 ="SELECT count(*) as c FROM vm_info";
+    resultSet0 = statement.executeQuery(sql0);
+    resultSet0.next();
+    max_available = resultSet0.getInt("c");
+} catch (Exception e) {
+    e.printStackTrace();
+}
 %>
 
 <c:set var="contextPath" value="${pageContext.request.contextPath}"/>
@@ -103,7 +121,6 @@ int available = 4;
         resultSet1 = statement.executeQuery(sql1);
         resultSet1.next();
         available = resultSet1.getInt("c");
-        System.out.println(available);
 
         } catch (Exception e) {
         e.printStackTrace();
@@ -133,7 +150,6 @@ int available = 4;
                 connection = DriverManager.getConnection(connectionUrl+dbName, userId, password);
                 statement=connection.createStatement();
                 String sql ="SELECT * FROM reservation;";
-                System.out.println(sql);
                 resultSet = statement.executeQuery(sql);
 
                 while(resultSet.next()) {
@@ -195,12 +211,13 @@ int available = 4;
 <script src="../../resources/js/utils.js"></script>
 <script>
     var available = '<%= available%>';
+    var max_available = '<%= max_available%>';
     var config = {
         type: 'doughnut',
         data: {
             datasets: [{
                 data: [
-                    4-available,
+                    max_available-available,
                     available
                 ],
                 backgroundColor: [

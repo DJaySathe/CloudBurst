@@ -2,9 +2,11 @@ package com.dssathe.cloudburst.aws;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 import com.jcraft.jsch.*;
+import com.jcraft.jsch.Random;
 
 public class AWS {
     private String username;
@@ -26,8 +28,8 @@ public class AWS {
         instanceId = null;
 
         imageId = "ami-da05a4a0";
-        securityGrp = "sg-9d0b6de8";
-        key = "my_aws_key3";
+        securityGrp = "<sg_grp>";
+        key = "<key_name>";
     }
 
     public String createInstance() {
@@ -40,7 +42,7 @@ public class AWS {
         return instanceId;
     }
 
-    public String setupInstance(String user, String pass) {
+    public String setupInstance(String user) {
         if (!setPublicIP()) {
             terminateInstance();
             return null;
@@ -53,7 +55,7 @@ public class AWS {
             return null;
         };
 
-        if(!createUser(user, pass)) {
+        if(!createUser(user)) {
             terminateInstance();
             return null;
         }
@@ -61,9 +63,9 @@ public class AWS {
         return publicIP;
     }
 
-    private Boolean createUser(String user, String pass) {
+    private Boolean createUser(String user) {
         username = user;
-        password = pass;
+        password = setPassword(8);
 
         if(!runSSH()) {
             return false;
@@ -150,11 +152,23 @@ public class AWS {
             p.waitFor();
             p.destroy();
 
+        } catch (Exception e) {
+            System.out.println("Unable to launch: " + e.getMessage() + "\n" + e.getStackTrace());
+            return null;
+        }
+
+        return instance;
+    }
+
+    private Boolean checkStatus() {
+        Process p;
+        BufferedReader br;
+        try {
             String status = "stopped";
             int i=0;
 
             while(!status.equals("running")) {
-                command = "aws ec2 describe-instance-status --instance-id " + instance + " --query InstanceStatuses[0].InstanceState.Name";
+                String command = "aws ec2 describe-instance-status --instance-id " + instanceId + " --query InstanceStatuses[0].InstanceState.Name";
                 p = Runtime.getRuntime().exec(command);
 
                 br = new BufferedReader(new InputStreamReader(p.getInputStream()));
@@ -170,22 +184,8 @@ public class AWS {
                 }
             }
 
-            TimeUnit.SECONDS.sleep(10);
-
-        } catch (Exception e) {
-            System.out.println("Unable to launch: " + e.getMessage() + "\n" + e.getStackTrace());
-            return null;
-        }
-
-        return instance;
-    }
-
-    private Boolean checkStatus() {
-        Process p;
-        BufferedReader br;
-        try {
-            String status = "checking";
-            int i = 0;
+            status = "checking";
+            i = 0;
 
             while (!status.equals("passed")) {
                 System.out.println("System reachability check in progress");
@@ -254,6 +254,17 @@ public class AWS {
             System.out.println("Unable to get public IP: " + e.getStackTrace());
             return false;
         }
+    }
+
+    protected static String setPassword(int length) {
+        String characters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890";
+        StringBuilder pass = new StringBuilder();
+        java.util.Random rnd = new java.util.Random();
+        while (pass.length() < length) {
+            int index = (int) (rnd.nextFloat() * characters.length());
+            pass.append(characters.charAt(index));
+        }
+        return pass.toString();
     }
 
     private Boolean runSSH() {

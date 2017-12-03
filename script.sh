@@ -1,12 +1,4 @@
 #!/bin/sh
-####
-# This script automatically creates user accounts with random passwords.
-#
-# Author: Russ Sanderlin
-# Date: 01/21/15
-#
-###
- 
  
 # Declare local variables, generate random password.
 hostip=$1

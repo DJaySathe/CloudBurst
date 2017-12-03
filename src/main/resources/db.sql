@@ -74,21 +74,10 @@ CREATE TABLE `vm_info` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `vm_id` varchar(25),
   `public_ip` varchar(25),
+  `private_ip` varchar(25),
   `availability` int(2) DEFAULT 1,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
-
---
--- Dumping data for table `vm_info`
---
-
-LOCK TABLES `vm_info` WRITE;
-insert into vm_info values (1, "VM1", "154.24.13.24:1236", 1);
-insert into vm_info values (2, "VM2", "154.24.13.24:1237", 1);
-insert into vm_info values (3, "VM3", "154.24.13.24:1238", 1);
-insert into vm_info values (4, "VM4", "154.24.13.24:1239", 1);
-UNLOCK TABLES;
 
 --
 -- Table structure for table `reservation`

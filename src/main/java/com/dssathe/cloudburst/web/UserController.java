@@ -158,9 +158,11 @@ public class UserController {
                           System.out.println("Starting private cloud provisioning");
                           Thread.sleep(3 * 1000);
 
+                          String private_ip = Helper.getPrivateIP(ip);
+
                           // get the password
-                          System.out.println("Running script:" + System.getProperty("user.dir") + "/script2.sh");
-                          Process p = new ProcessBuilder("/bin/sh", System.getProperty("user.dir") + "/script2.sh", ip, reservationForm.getUsername(), "1").start();
+                          System.out.println("Running script:" + System.getProperty("user.dir") + "/script.sh " + private_ip + " " + reservationForm.getUsername() + " 1");
+                          Process p = new ProcessBuilder("/bin/sh", System.getProperty("user.dir") + "/script.sh", private_ip, reservationForm.getUsername(), "1").start();
                           p.waitFor();
 
                           BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()));
@@ -211,6 +213,18 @@ public class UserController {
             if(reservationID != -1) {
                 final long reserveID = reservationID;
 
+                // schedule a future task to delete reservation on end time
+                System.out.println("Scheduling a task to delete reservation on end time");
+                Helper.scheduler.schedule(new Runnable() {
+                    @Override
+                    public void run() {
+                        System.out.println("\nTime's up! Start deleting reservation number " + reserveID + " if present.\n");
+
+                        if(Helper.reservationExists(reserveID))
+                            removeReservation(reserveID);
+
+                    }}, duration, TimeUnit.MINUTES);
+
                 // create a thread to setup the AWS VM
                 Thread setupAWS = new Thread() {
                     @Override
@@ -218,10 +232,7 @@ public class UserController {
                         try {
                             System.out.println("Starting AWS cloud provisioning");
 
-                            // generate random password
-                            String pw = "YxAnsK";
-
-                            String ip = aws.setupInstance(reservationForm.getUsername(), pw);
+                            String ip = aws.setupInstance(reservationForm.getUsername());
 
                             if(ip == null) {
                                 System.out.println("Unable to create AWS Instance");
@@ -231,7 +242,7 @@ public class UserController {
                             else {
                                 System.out.println("AWS instance ip: " + ip);
                                 // update ip and password for reservation in database
-                                Helper.updateReservation(reserveID, ip, pw);
+                                Helper.updateReservation(reserveID, ip, aws.getPassword());
                             }
 
                             System.out.println("Coming out of AWS cloud provisioning");
@@ -257,46 +268,48 @@ public class UserController {
     }
 
     public void removeReservation(long id) {
-      final Reservation reservation = reservationRepository.findOne(id); // fetch reservation object
+        final Reservation reservation = reservationRepository.findOne(id); // fetch reservation object
 
-      System.out.println("Delete reservation with id=" + reservation.getId() + " ip=" + reservation.getPublic_ip() + " user=" + reservation.getUsername());
+        System.out.println("Delete reservation with id=" + reservation.getId() + " ip=" + reservation.getPublic_ip() + " user=" + reservation.getUsername());
 
-      // delete reservation from database
-      reservationRepository.delete(id);
-      System.out.println("Deleted reservation from db");
+        // delete reservation from database
+        reservationRepository.delete(id);
+        System.out.println("Deleted reservation from db");
 
-      // create a thread to terminate/clean up the VM
-      Thread terminateVM = new Thread() {
+        // create a thread to terminate/clean up the VM
+        Thread terminateVM = new Thread() {
         @Override
         public void run() {
-          try {
-            System.out.println("Starting VM cleanup");
-            Thread.sleep(3 * 1000);
+            try {
+                System.out.println("Starting VM cleanup");
+                Thread.sleep(3 * 1000);
 
-            if(reservation.getSource() == 1) { // delete VM on private cloud
+                if(reservation.getSource() == 1) { // delete VM on private cloud
 
-              Process p = new ProcessBuilder("/bin/sh", System.getProperty("user.dir") + "/script2.sh", reservation.getPublic_ip(), reservation.getUsername(), "0").start();
-              p.waitFor();
+                    String private_ip = Helper.getPrivateIP(reservation.getPublic_ip());
 
-              BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()));
-              String value = br.readLine();
-              System.out.println("Return code from delete bash script:" + value);
+                    Process p = new ProcessBuilder("/bin/sh", System.getProperty("user.dir") + "/script.sh", private_ip, reservation.getUsername(), "0").start();
+                    p.waitFor();
 
-              // mark the vm as available
-              String vm_id = reservation.getVm_id();
-              Helper.markAvailability(vm_id, 1);
+                    BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()));
+                    String value = br.readLine();
+                    System.out.println(value);
 
-            } else { // delete VM on public cloud
-              AWS.terminateInstance(reservation.getVm_id());
+                    // mark the vm as available
+                    String vm_id = reservation.getVm_id();
+                    Helper.markAvailability(vm_id, 1);
+
+                } else { // delete VM on public cloud
+                    AWS.terminateInstance(reservation.getVm_id());
+                }
+
+                System.out.println("Coming out of VM cleanup");
+
+            } catch (Exception e) {
+                System.out.println("Unable to complete VM cleanup / termination: " + e.getMessage() + "\n" + e.getStackTrace());
             }
-
-            System.out.println("Coming out of VM cleanup");
-
-          } catch (Exception e) {
-              System.out.println("Unable to complete VM cleanup / termination: " + e.getMessage() + "\n" + e.getStackTrace());
           }
-        }
       };
-      terminateVM.start();
+        terminateVM.start();
     }
 }

@@ -159,4 +159,21 @@ public class Helper {
       }
       return "";
     }
+
+    public static String getPrivateIP(String public_ip) {
+        try{
+            connection = DriverManager.getConnection(connectionUrl+dbName, userId, password);
+            statement=connection.createStatement();
+            String sql = "select private_ip from vm_info where public_ip='" + public_ip + "'";
+
+            resultSet = statement.executeQuery(sql);
+            if(resultSet.next())
+                return resultSet.getString("private_ip");
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.out.println(e);
+        }
+        return "";
+    }
 }

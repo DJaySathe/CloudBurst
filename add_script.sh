@@ -9,5 +9,5 @@ randompw=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 8 | head -n 1)
  
 useradd $newuser
 echo $newuser:$randompw | chpasswd
-echo "UserID:" $newuser "has been created with the following password:" $randompw
+echo $randompw
 
