@@ -27,3 +27,10 @@ sudo apt-get install jetty9
 sudo apt-get install awscli
 
 git clone https://github.com/DJaySathe/CloudBurst
+
+$ aws configure
+AWS Access Key ID [None]: <access_key_id_iam_user>
+AWS Secret Access Key [None]: <access_key_iam_user>
+Default region name [None]: us-east-1
+Default output format [None]: text
+
