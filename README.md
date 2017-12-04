@@ -15,7 +15,7 @@ like virtual machines.
 resources on the AWS. For Ex: you can provide 5 VM’s. Currently, all 5 are reserved. If user request for new virtual machine, then send the REST API query to the AWS and reserve a machine on AWS and return to the user with Machine IP & login credentials.
  
 
-Installation 
+#Installation 
 -------------
 
 # install git mysql and maven
