@@ -14,3 +14,16 @@ like virtual machines.
 3. If the user requirement is going beyond than availability or threshold, then provide the requested
 resources on the AWS. For Ex: you can provide 5 VM’s. Currently, all 5 are reserved. If user request for new virtual machine, then send the REST API query to the AWS and reserve a machine on AWS and return to the user with Machine IP & login credentials.
  
+
+Installation 
+-------------
+
+# install git mysql and maven
+# sudo apt-get update
+sudo apt-get install git
+sudo apt-get install  mysql-server
+sudo apt-get install maven
+sudo apt-get install jetty9
+sudo apt-get install awscli
+
+git clone https://github.com/DJaySathe/CloudBurst
