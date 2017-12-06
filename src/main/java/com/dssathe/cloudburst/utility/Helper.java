@@ -101,8 +101,9 @@ public class Helper {
             resultSet = statement.executeQuery(sql);
 
             if(resultSet.next()) {
+                int count = resultSet.getInt("c");
                 connection.close();
-                return resultSet.getInt("c");
+                return count;
             }
             connection.close();
 
@@ -185,8 +186,9 @@ public class Helper {
             resultSet = statement.executeQuery(sql);
 
             if(resultSet.next()) {
+                String ip = resultSet.getString("private_ip");
                 connection.close();
-                return resultSet.getString("private_ip");
+                return ip;
             }
             connection.close();
 
