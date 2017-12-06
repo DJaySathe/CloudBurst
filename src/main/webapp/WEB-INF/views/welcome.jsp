@@ -126,6 +126,8 @@ int available = 4;
         }
         %>
         </table>
+
+        Note : Please refresh the page after one minute if you are unable to see IP/Password for your reservation.
     </c:if>
 
 <!-- /container -->
