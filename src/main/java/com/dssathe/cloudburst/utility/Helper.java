@@ -165,8 +165,9 @@ public class Helper {
           resultSet = statement.executeQuery(sql);
 
           if(resultSet.next()) {
+              String ip = resultSet.getString("public_ip");
               connection.close();
-              return resultSet.getString("public_ip");
+              return ip;
           }
           connection.close();
 
