@@ -44,16 +44,17 @@ public class Helper {
             System.out.println(sql);
             statement.executeUpdate(sql, Statement.RETURN_GENERATED_KEYS);
             ResultSet rs = statement.getGeneratedKeys();
-            connection.close();
+
 
             if (rs.next())
               id = rs.getLong(1);
-
-
+            connection.close();
 
         } catch (Exception e) {
             e.printStackTrace();
             System.out.println(e);
+        }finally {
+
         }
         return id;
     }
@@ -78,10 +79,12 @@ public class Helper {
           String sql = "select id from reservation where id = " + reservationID;
 
           resultSet = statement.executeQuery(sql);
-          connection.close();
-          if(resultSet.next())
-            return true;
 
+          if(resultSet.next()) {
+              connection.close();
+              return true;
+          }
+          connection.close();
       } catch (Exception e) {
           e.printStackTrace();
           System.out.println(e);
@@ -96,10 +99,12 @@ public class Helper {
             String sql ="SELECT count(*) as c FROM vm_info where availability = 1";
 
             resultSet = statement.executeQuery(sql);
-            connection.close();
-            if(resultSet.next())
-              return resultSet.getInt("c");
 
+            if(resultSet.next()) {
+                connection.close();
+                return resultSet.getInt("c");
+            }
+            connection.close();
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -132,15 +137,17 @@ public class Helper {
           String sql = "select vm_id from vm_info where availability=1";
 
           resultSet = statement.executeQuery(sql);
-          connection.close();
+
           // Call getAvailable() to make sure atleast 1 vm is free before calling this function.
           if(resultSet.next()) {
             String vm_id = resultSet.getString("vm_id"); // get the first available vm
             // mark the vm as unavailable
             markAvailability(vm_id, 0);
+            connection.close();
             return vm_id;
           }
 
+          connection.close();
       } catch (Exception e) {
           e.printStackTrace();
           System.out.println(e);
@@ -155,9 +162,12 @@ public class Helper {
           String sql = "select public_ip from vm_info where vm_id='" + vm_id + "'";
 
           resultSet = statement.executeQuery(sql);
+
+          if(resultSet.next()) {
+              connection.close();
+              return resultSet.getString("public_ip");
+          }
           connection.close();
-          if(resultSet.next())
-            return resultSet.getString("public_ip");
 
       } catch (Exception e) {
           e.printStackTrace();
@@ -173,9 +183,12 @@ public class Helper {
             String sql = "select private_ip from vm_info where public_ip='" + public_ip + "'";
 
             resultSet = statement.executeQuery(sql);
-            connection.close();
-            if(resultSet.next())
+
+            if(resultSet.next()) {
+                connection.close();
                 return resultSet.getString("private_ip");
+            }
+            connection.close();
 
         } catch (Exception e) {
             e.printStackTrace();
