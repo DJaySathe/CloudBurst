@@ -43,13 +43,13 @@ public class Helper {
 
             System.out.println(sql);
             statement.executeUpdate(sql, Statement.RETURN_GENERATED_KEYS);
-
             ResultSet rs = statement.getGeneratedKeys();
+            connection.close();
 
             if (rs.next())
               id = rs.getLong(1);
 
-            connection.close();
+
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -64,7 +64,7 @@ public class Helper {
           statement=connection.createStatement();
           String sql = "update reservation set public_ip = '" + ip + "', password = '" + pw + "' where id = " + reservationID;
           statement.executeUpdate(sql);
-
+          connection.close();
       } catch (Exception e) {
           e.printStackTrace();
           System.out.println(e);
@@ -78,6 +78,7 @@ public class Helper {
           String sql = "select id from reservation where id = " + reservationID;
 
           resultSet = statement.executeQuery(sql);
+          connection.close();
           if(resultSet.next())
             return true;
 
@@ -95,8 +96,10 @@ public class Helper {
             String sql ="SELECT count(*) as c FROM vm_info where availability = 1";
 
             resultSet = statement.executeQuery(sql);
+            connection.close();
             if(resultSet.next())
               return resultSet.getInt("c");
+
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -112,6 +115,7 @@ public class Helper {
             String sql = "update vm_info set availability = " + val + " where vm_id = '" + vm_id + "'";
 
             int update_count = statement.executeUpdate(sql);
+            connection.close();
             return update_count;
 
         } catch (Exception e) {
@@ -128,6 +132,7 @@ public class Helper {
           String sql = "select vm_id from vm_info where availability=1";
 
           resultSet = statement.executeQuery(sql);
+          connection.close();
           // Call getAvailable() to make sure atleast 1 vm is free before calling this function.
           if(resultSet.next()) {
             String vm_id = resultSet.getString("vm_id"); // get the first available vm
@@ -150,6 +155,7 @@ public class Helper {
           String sql = "select public_ip from vm_info where vm_id='" + vm_id + "'";
 
           resultSet = statement.executeQuery(sql);
+          connection.close();
           if(resultSet.next())
             return resultSet.getString("public_ip");
 
@@ -167,6 +173,7 @@ public class Helper {
             String sql = "select private_ip from vm_info where public_ip='" + public_ip + "'";
 
             resultSet = statement.executeQuery(sql);
+            connection.close();
             if(resultSet.next())
                 return resultSet.getString("private_ip");
 
