@@ -10,6 +10,7 @@
     <http auto-config="true">
         <intercept-url pattern="/" access="hasRole('ROLE_ADMIN')"/>
         <intercept-url pattern="/adminDashboard" access="hasRole('ROLE_ADMIN')"/>
+        <intercept-url pattern="/registration" access="hasRole('ROLE_ADMIN')"/>
         <form-login login-page="/login" authentication-success-handler-ref="CustomAuthenticationSuccessHandler" authentication-failure-url="/login?error" username-parameter="username" password-parameter="password"/>
         <logout logout-success-url="/login?logout" />
     </http>
