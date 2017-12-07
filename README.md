@@ -33,17 +33,17 @@ git clone https://github.com/DJaySathe/CloudBurst
 or
 git clone https://github.ncsu.edu/engr-csc-547/2017-fall-team-05
 
-Use file at /src/main/resources/db.sql to load the database schema.
+Use file at [db.sql](/src/main/resources/db.sql) to load the database schema.
 
 Configure Aws
 ---------------
 
-Follow the instruction given in aws_details file.
+Follow the instruction given in [aws_details](aws_details) file.
 
 Private cloud setup
 ---------------
 
-Follow the instruction given in Networking_conf file.
+Follow the instruction given in [Networking_conf](Networking_conf) file.
 
 Starting the Project
 ------------
