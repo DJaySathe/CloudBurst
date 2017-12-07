@@ -15,22 +15,39 @@ like virtual machines.
 resources on the AWS. For Ex: you can provide 5 VM’s. Currently, all 5 are reserved. If user request for new virtual machine, then send the REST API query to the AWS and reserve a machine on AWS and return to the user with Machine IP & login credentials.
  
 
-#Installation 
+Provisioning Engine Setup 
 -------------
 
-# install git mysql and maven
-# sudo apt-get update
-sudo apt-get install git
-sudo apt-get install  mysql-server
-sudo apt-get install maven
-sudo apt-get install jetty9
-sudo apt-get install awscli
+Install git mysql, maven, MySQL, Jetty9, awscli
+
+1. sudo apt-get update
+2. sudo apt-get install git
+3. sudo apt-get install  mysql-server
+4. sudo apt-get install maven
+5. sudo apt-get install jetty9
+6. sudo apt-get install awscli
+
+Clone the Git Repository
 
 git clone https://github.com/DJaySathe/CloudBurst
+or
+git clone https://github.ncsu.edu/engr-csc-547/2017-fall-team-05
 
-$ aws configure
-AWS Access Key ID [None]: <access_key_id_iam_user>
-AWS Secret Access Key [None]: <access_key_iam_user>
-Default region name [None]: us-east-1
-Default output format [None]: text
+Use file at /src/main/resources/db.sql to load the database schema.
 
+Configure Aws
+---------------
+
+Follow the instruction given in aws_details file.
+
+Private cloud setup
+---------------
+
+Follow the instruction given in Networking_conf file.
+
+Starting the Project
+------------
+
+Go to the project home folder.
+
+mvn jetty:run
